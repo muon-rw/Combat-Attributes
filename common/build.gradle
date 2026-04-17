@@ -19,13 +19,11 @@ dependencies {
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixin_squared_version}"))
 
     // compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
-    // Neoforge also bundles fabric's mixin fork, so it's safe to use in common
+    // Neoforge bundles Fabric's Mixin fork, so it's safe to use in common.
+    // This lets us mixin to interfaces and extend enums
     compileOnly(annotationProcessor("net.fabricmc:sponge-mixin:${fabric_mixin_version}"))
-
-    // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
+    // Fabric and Neoforge both also bundle MixinExtras
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
-    // compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
-    // annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
 
 
 
