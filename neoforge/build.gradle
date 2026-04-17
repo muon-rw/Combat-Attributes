@@ -36,7 +36,7 @@ neoForge {
 
         clientExtra {
             client()
-            setGameDirectory(project.file('runs/client2'))
+            gameDirectory = this.mkdir(this.file("runs/client2"))
             programArguments.addAll('--username', 'Dev2')
         }
 
