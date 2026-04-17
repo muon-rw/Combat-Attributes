@@ -1,6 +1,7 @@
 plugins {
     id 'multiloader-common'
     id 'net.neoforged.moddev'
+    id 'dev.mixinmcp.decompile'
 }
 
 neoForge {
@@ -13,10 +14,24 @@ neoForge {
 }
 
 dependencies {
-    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+
+    // MixinSquared - MixinSquared's annotationProcessor MUST be registered BEFORE Mixin's one.
+    compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixin_squared_version}"))
+
+    // compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    // Neoforge also bundles fabric's mixin fork, so it's safe to use in common
+    compileOnly(annotationProcessor("net.fabricmc:sponge-mixin:${fabric_mixin_version}"))
+
     // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
-    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
-    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
+    // compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
+    // annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
+
+
+
+    // Fzzy Config
+    implementation("me.fzzyhmstrs:fzzy_config:${fzzy_config}")
+
 }
 
 configurations {

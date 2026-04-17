@@ -1,6 +1,15 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
+    id 'dev.mixinmcp.decompile'
+}
+
+dependencies {
+    implementation("me.fzzyhmstrs:fzzy_config:${fzzy_config}+neoforge")
+
+    jarJar(implementation("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixin_squared_version}")) {
+        version { strictly '[0.3.4,)'; prefer '0.3.7-beta.1' }
+    }
 }
 
 neoForge {
@@ -14,11 +23,22 @@ neoForge {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+            systemProperty 'forge.logging.console.level', 'debug'
+            systemProperty 'forge.logging.file.level', 'info'
+            jvmArgument '-Xmx6G'
+            jvmArgument '-Xms2G'
         }
         client {
             client()
             gameDirectory = this.mkdir(this.file("runs/client"))
         }
+
+        clientExtra {
+            client()
+            setGameDirectory(project.file('run/client2'))
+            programArguments.addAll('--username', 'Dev2')
+        }
+
         data {
             clientData()
             gameDirectory = this.mkdir(this.file("runs/data"))
@@ -26,6 +46,7 @@ neoForge {
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
+
         server {
             server()
             this.file("runs/server").createParentDirectories()

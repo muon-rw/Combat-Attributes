@@ -1,11 +1,21 @@
 plugins {
     id 'multiloader-loader'
     id 'net.fabricmc.fabric-loom'
+    id 'dev.mixinmcp.decompile'
 }
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
+
+    implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${mixin_squared_version}"))
+
+    implementation("me.fzzyhmstrs:fzzy_config:${fzzy_config}") {
+        exclude(group: "me.lucko")
+        exclude(group: "com.terraformersmc")
+    }
 }
 
 loom {
