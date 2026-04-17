@@ -25,7 +25,7 @@ neoForge {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
             systemProperty 'forge.logging.console.level', 'debug'
-            systemProperty 'forge.logging.file.level', 'info'
+            systemProperty 'forge.logging.file.level', 'info' // You can change this to DEBUG or TRACE, but beware performance impact
             jvmArgument '-Xmx6G'
             jvmArgument '-Xms2G'
         }
@@ -36,7 +36,7 @@ neoForge {
 
         clientExtra {
             client()
-            setGameDirectory(project.file('run/client2'))
+            setGameDirectory(project.file('runs/client2'))
             programArguments.addAll('--username', 'Dev2')
         }
 
@@ -78,6 +78,22 @@ sourceSets.configureEach {
             attributes {
                 attribute(loaderAttribute, 'neoforge')
             }
+        }
+    }
+}
+
+if (project.findProperty('neoforge_modpack_path')) {
+    tasks.register('sendToModpackNeo', Copy) {
+        group = 'publishing'
+        description = "Copies the NeoForge dev jar into ${project.neoforge_modpack_path}"
+        dependsOn tasks.named('jar')
+        from tasks.named('jar').flatMap { it.archiveFile }
+        into project.neoforge_modpack_path
+        rename { String fileName ->
+            fileName.replace(project.version.toString(), 'dev')
+        }
+        doLast {
+            println "NeoForge dev jar sent to: ${project.neoforge_modpack_path}"
         }
     }
 }

@@ -1,6 +1,5 @@
 package dev.muon.template;
 
-
 import com.bawnorton.mixinsquared.adjuster.MixinAnnotationAdjusterRegistrar;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;

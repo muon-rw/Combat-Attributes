@@ -8,9 +8,10 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
-
     implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${mixin_squared_version}"))
+
+    // No more obfuscation on this gamever, so no more `mod` prefix for mod dependencies - no remapping to do!
+    implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
 
     implementation("me.fzzyhmstrs:fzzy_config:${fzzy_config}") {
         exclude(group: "me.lucko")
@@ -24,16 +25,30 @@ loom {
         accessWidenerPath.set(aw)
     }
     runs {
+        configureEach {
+            ideConfigGenerated(true)
+            property('fabric.log.level', 'debug')
+            property('mixin.debug', 'true')
+            vmArg('-Xmx6G')
+            vmArg('-Xms2G')
+        }
         client {
             client()
             setConfigName('Fabric Client')
-            ideConfigGenerated(true)
             runDir('runs/client')
+            programArgs('--username', 'Dev')
+            // Fabric randomizes devuser name (Player###), we manually specify a fixed one matching Neoforge
+        }
+        clientExtra {
+            client()
+            setConfigName('Fabric ClientExtra')
+            runDir('runs/client2')
+            programArgs('--username', 'Dev2')
+            // Fabric randomizes devuser name (Player###), we manually specify a fixed one matching Neoforge
         }
         server {
             server()
             setConfigName('Fabric Server')
-            ideConfigGenerated(true)
             runDir('runs/server')
         }
     }
@@ -54,6 +69,22 @@ sourceSets.configureEach {
             attributes {
                 attribute(loaderAttribute, 'fabric')
             }
+        }
+    }
+}
+
+if (project.findProperty('fabric_modpack_path')) {
+    tasks.register('sendToModpackFab', Copy) {
+        group = 'publishing'
+        description = "Copies the Fabric dev jar into ${project.fabric_modpack_path}"
+        dependsOn tasks.named('jar')
+        from tasks.named('jar').flatMap { it.archiveFile }
+        into project.fabric_modpack_path
+        rename { String fileName ->
+            fileName.replace(project.version.toString(), 'dev')
+        }
+        doLast {
+            println "Fabric dev jar sent to: ${project.fabric_modpack_path}"
         }
     }
 }
