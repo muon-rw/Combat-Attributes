@@ -9,12 +9,14 @@ plugins {
 
 tasks.register('renameProject') {
     group = 'setup'
-    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration. Usage: ./gradlew renameProject -PmodId=mymod [-PmodName=MyMod] [-Ppackage=com.example.mymod | -PpackageSuffix=mymod]'
+    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration. Usage: ./gradlew renameProject -PmodId=mymod [-PmodName=MyMod] [-PdisplayName="My Mod"] [-PfolderName=My-Mod] [-Ppackage=com.example.mymod]'
 
     doLast {
         def folderName = rootProject.projectDir.name
         def currentModId = 'template'
-        def currentModName = 'Template'
+        def currentModName = 'Template'        // PascalCase Java class prefix
+        def currentDisplayName = 'Template'    // shown in modmenu / mods list
+        def currentFolderName = 'Template'     // rootProject.name, folder on disk
         def currentPkg = 'dev.muon.template'
 
         println ""
@@ -29,13 +31,15 @@ tasks.register('renameProject') {
             throw new GradleException(
                 "Missing required property 'modId'.\n\n" +
                 "Usage:\n" +
-                "  ./gradlew renameProject -PmodId=<lowercase_id> [-PmodName=<PascalCase>] [-Ppackage=<full.package> | -PpackageSuffix=<lowercase>]\n\n" +
+                "  ./gradlew renameProject -PmodId=<lowercase_id> [-PmodName=<PascalCase>] [-PdisplayName=\"<Display Name>\"] [-PfolderName=<Folder-Name>] [-Ppackage=<full.package>]\n\n" +
                 "Example (folder name '${folderName}'):\n" +
-                "  ./gradlew renameProject -PmodId=${folderName.toLowerCase()}\n" +
-                "  ./gradlew renameProject -PmodId=${folderName.toLowerCase()} -Ppackage=com.example.${folderName.toLowerCase()}\n\n" +
-                "If modName is omitted, a PascalCase version of modId is used.\n" +
-                "If neither package nor packageSuffix is given, the package defaults to dev.muon.<modId>.\n" +
-                "package takes precedence over packageSuffix if both are provided."
+                "  ./gradlew renameProject -PmodId=${folderName.toLowerCase().replace('-', '_')}\n" +
+                "  ./gradlew renameProject -PmodId=my_mod -PdisplayName=\"My Mod\" -PfolderName=My-Mod\n\n" +
+                "Each optional property, if omitted, is inferred from modId:\n" +
+                "  modName      -> PascalCase join       (my_mod -> MyMod)\n" +
+                "  displayName  -> Title Case with spaces (my_mod -> 'My Mod')\n" +
+                "  folderName   -> Title Case with dashes (my_mod -> My-Mod)\n" +
+                "  package      -> dev.muon.<modId>"
             )
         }
 
@@ -44,21 +48,29 @@ tasks.register('renameProject') {
             throw new GradleException("Invalid modId '${newModId}'. Must be lowercase alphanumeric with underscores, starting with a letter.")
         }
 
-        def defaultModName = newModId.split('_').collect { it.capitalize() }.join('')
+        def modIdParts = newModId.split('_').collect { it.capitalize() }
+        def defaultModName = modIdParts.join('')
+        def defaultDisplayName = modIdParts.join(' ')
+        def defaultFolderName = modIdParts.join('-')
+
         def newModName = project.hasProperty('modName') ? project.property('modName').toString().trim() : defaultModName
         if (!newModName.matches('[A-Z][a-zA-Z0-9]*')) {
-            throw new GradleException("Invalid modName '${newModName}'. Must be PascalCase starting with an uppercase letter.")
+            throw new GradleException("Invalid modName '${newModName}'. Must be PascalCase starting with an uppercase letter (no spaces or dashes).")
         }
 
-        // Resolve the full new package: explicit -Ppackage wins, then -PpackageSuffix under dev.muon, then default dev.muon.<modId>
-        def newPkg
-        if (project.hasProperty('package')) {
-            newPkg = project.property('package').toString().trim()
-        } else if (project.hasProperty('packageSuffix')) {
-            newPkg = "dev.muon.${project.property('packageSuffix').toString().trim()}"
-        } else {
-            newPkg = "dev.muon.${newModId}"
+        def newDisplayName = project.hasProperty('displayName') ? project.property('displayName').toString().trim() : defaultDisplayName
+        if (!newDisplayName.matches('[A-Za-z0-9][A-Za-z0-9 ]*')) {
+            throw new GradleException("Invalid displayName '${newDisplayName}'. Must contain only letters, digits, and spaces.")
         }
+
+        def newFolderName = project.hasProperty('folderName') ? project.property('folderName').toString().trim() : defaultFolderName
+        if (!newFolderName.matches('[A-Za-z0-9][A-Za-z0-9-]*')) {
+            throw new GradleException("Invalid folderName '${newFolderName}'. Must contain only letters, digits, and dashes.")
+        }
+
+        def newPkg = project.hasProperty('package')
+            ? project.property('package').toString().trim()
+            : "dev.muon.${newModId}"
         if (!newPkg.matches('[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*')) {
             throw new GradleException("Invalid package '${newPkg}'. Must be dot-separated lowercase segments (each starting with a letter).")
         }
@@ -68,25 +80,27 @@ tasks.register('renameProject') {
         def newPkgPath = newPkg.replace('.', '/')
 
         println "Will rename:"
-        println "  mod ID:   ${currentModId} -> ${newModId}"
-        println "  mod name: ${currentModName} -> ${newModName}"
-        println "  package:  ${oldPkg} -> ${newPkg}"
+        println "  mod ID:       ${currentModId} -> ${newModId}"
+        println "  mod name:     ${currentModName} -> ${newModName}"
+        println "  display name: ${currentDisplayName} -> ${newDisplayName}"
+        println "  folder name:  ${currentFolderName} -> ${newFolderName}"
+        println "  package:      ${oldPkg} -> ${newPkg}"
         println ""
 
         // --- 1. Update gradle.properties ---
         println "Updating gradle.properties..."
         def propsFile = rootProject.file('gradle.properties')
         def propsText = propsFile.text
-        propsText = propsText.replaceAll("group=${java.util.regex.Pattern.quote(oldPkg)}", "group=${newPkg}")
-        propsText = propsText.replaceAll("mod_name=${currentModName}", "mod_name=${newModName}")
-        propsText = propsText.replaceAll("mod_id=${currentModId}", "mod_id=${newModId}")
-        propsText = propsText.replaceAll("description=${currentModName}", "description=${newModName}")
+        propsText = propsText.replace("group=${oldPkg}", "group=${newPkg}")
+        propsText = propsText.replace("mod_name=${currentDisplayName}", "mod_name=${newDisplayName}")
+        propsText = propsText.replace("mod_id=${currentModId}", "mod_id=${newModId}")
+        propsText = propsText.replace("description=${currentDisplayName}", "description=${newDisplayName}")
         propsFile.text = propsText
 
         // --- 2. Update settings.gradle ---
         println "Updating settings.gradle..."
         def settingsFile = rootProject.file('settings.gradle')
-        settingsFile.text = settingsFile.text.replace("rootProject.name = '${currentModName}'", "rootProject.name = '${newModName}'")
+        settingsFile.text = settingsFile.text.replace("rootProject.name = '${currentFolderName}'", "rootProject.name = '${newFolderName}'")
 
         // --- 3. Rename mixin JSON files and update their content ---
         println "Updating mixin JSON files..."
@@ -210,7 +224,7 @@ tasks.register('renameProject') {
         println "=== Rename complete! ==="
         println ""
         println "Next steps:"
-        println "  1. Rename the project folder from '${rootProject.projectDir.name}' to '${newModName}' (if desired, to match rootProject.name)"
+        println "  1. Rename the project folder from '${rootProject.projectDir.name}' to '${newFolderName}' (to match rootProject.name)"
         println "  2. Run './gradlew build' to verify everything compiles"
         println "  3. Refresh Gradle in your IDE to regenerate Fabric run configurations"
         println ""

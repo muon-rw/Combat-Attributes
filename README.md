@@ -11,14 +11,16 @@
 ___
 ## Setup:
 ### 1. Rename your project
-- Run the `renameProject` task, passing your mod ID and Mod Name - Mod Name should match the project folder name exactly!:
+- Run the `renameProject` task, passing your mod ID:
   ```
-  ./gradlew renameProject -PmodId=mymod -PmodName=MyMod
+  ./gradlew renameProject -PmodId=my_mod
   ```
-- Optional properties:
-  - `-PmodName=MyMod` — PascalCase display name (defaults to a PascalCase version of `modId`)
-  - `-Ppackage=com.example.mymod` — full Java package (defaults to `dev.muon.<modId>`)
-- **IMPORTANT** The name in `settings.gradle` should match the folder name exactly, case sensitive — rename the folder to match your new mod name if needed
+- Optional properties (each is inferred from `modId` underscores if omitted):
+  - `-PmodName=MyMod` — PascalCase Java class prefix *(`my_mod` → `MyMod`)*
+  - `-PdisplayName="My Mod"` — name shown in modmenu / NeoForge mods list *(`my_mod` → `My Mod`)*
+  - `-PfolderName=My-Mod` — `rootProject.name` and expected folder name *(`my_mod` → `My-Mod`)*
+  - `-Ppackage=com.example.mymod` — full Java package *(defaults to `dev.muon.<modId>`)*
+- **IMPORTANT** The `rootProject.name` in `settings.gradle` should match the folder name exactly, case sensitive — rename the folder to match after running the task
 
 ### 2. Download a Java 25 SDK and configure it in IntelliJ:
 

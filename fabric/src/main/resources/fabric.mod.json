@@ -9,7 +9,7 @@
     ],
     "contact": {
         "homepage": "https://muon.rip",
-        "sources": "https://github.com/muon-rw/Template"
+        "sources": "https://github.com/${github_owner}/${github_repo}"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
