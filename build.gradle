@@ -109,14 +109,27 @@ tasks.register('renameProject') {
         }
 
         // --- 4. Update fabric.mod.json entrypoint ---
+        // Entrypoint is `<pkg>.<ModName>Fabric` (e.g. dev.muon.template.TemplateFabric).
+        // Package and ModName replacement below handles it in one shot.
         println "Updating fabric.mod.json..."
         def fabricModJson = rootProject.file('fabric/src/main/resources/fabric.mod.json')
         if (fabricModJson.exists()) {
             fabricModJson.text = fabricModJson.text
-                .replace("${oldPkg}.${currentModName}", "${newPkg}.${newModName}")
+                .replace(oldPkg, newPkg)
+                .replace(currentModName, newModName)
         }
 
         // --- 5. Rename Java source directories and update package declarations/imports ---
+        // Content replacements applied to every Java file:
+        //   oldPkg -> newPkg              (package, imports)
+        //   currentModName -> newModName  (all class names with the mod-name prefix:
+        //                                  Template, TemplateFabric, TemplateNeoforge,
+        //                                  TemplateConfigClient, etc., and field/method
+        //                                  refs like Template.LOG, Template.MOD_ID)
+        //   "template" -> "<newModId>"    (string literals: MOD_ID init, isModLoaded(...),
+        //                                  log messages, etc.)
+        // File rename: any file whose name starts with currentModName has the prefix
+        // rewritten to newModName.
         println "Moving and updating Java source files..."
         ['common', 'fabric', 'neoforge'].each { module ->
             def oldDir = rootProject.file("${module}/src/main/java/${oldPkgPath}")
@@ -128,16 +141,19 @@ tasks.register('renameProject') {
                         def relativePath = oldDir.toPath().relativize(file.toPath()).toString()
                         def content = file.text
                             .replace(oldPkg, newPkg)
-                            .replace("MOD_ID = \"${currentModId}\"", "MOD_ID = \"${newModId}\"")
-                            .replace("MOD_NAME = \"${currentModName}\"", "MOD_NAME = \"${newModName}\"")
+                            .replace(currentModName, newModName)
+                            .replace("\"${currentModId}\"", "\"${newModId}\"")
 
-                        // Rename the main mod class file
+                        // Rename any file whose basename starts with the current mod name
+                        // (Template.java, TemplateFabric.java, TemplateConfigClient.java, ...)
                         def targetRelPath = relativePath
-                        if (relativePath == "${currentModName}.java") {
-                            targetRelPath = "${newModName}.java"
-                            content = content
-                                .replace("class ${currentModName} ", "class ${newModName} ")
-                                .replace("public ${currentModName}(", "public ${newModName}(")
+                        def fileName = file.name
+                        if (fileName.startsWith(currentModName)) {
+                            def newFileName = newModName + fileName.substring(currentModName.length())
+                            def parentPath = relativePath.contains(File.separator)
+                                ? relativePath.substring(0, relativePath.lastIndexOf(File.separator) + 1)
+                                : ""
+                            targetRelPath = parentPath + newFileName
                         }
 
                         def targetFile = new File(newDir, targetRelPath)
@@ -167,18 +183,7 @@ tasks.register('renameProject') {
             }
         }
 
-        // --- 7. Update CommonClass.java hardcoded mod ID reference ---
-        // (Already handled by the package move step which replaces oldPkg,
-        //  but the isModLoaded("template") string literal needs explicit handling)
-        println "Updating hardcoded mod ID references..."
-        def commonClassFile = rootProject.file("common/src/main/java/${newPkgPath}/CommonClass.java")
-        if (commonClassFile.exists()) {
-            commonClassFile.text = commonClassFile.text
-                .replace("isModLoaded(\"${currentModId}\")", "isModLoaded(\"${newModId}\")")
-                .replace("Hello to ${currentModId}", "Hello to ${newModId}")
-        }
-
-        // --- 8. Delete Fabric run configs so they regenerate with correct module names ---
+        // --- 7. Delete Fabric run configs so they regenerate with correct module names ---
         // Fabric Loom generates run configs with module names based on rootProject.name.
         // After renaming, old configs reference stale module names and must be deleted for proper regeneration.
         println "Deleting Fabric run configurations for regeneration..."
