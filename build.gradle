@@ -9,68 +9,75 @@ plugins {
 
 tasks.register('renameProject') {
     group = 'setup'
-    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration.'
+    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration. Usage: ./gradlew renameProject -PmodId=mymod [-PmodName=MyMod] [-Ppackage=com.example.mymod | -PpackageSuffix=mymod]'
 
     doLast {
-        def console = System.console()
-        if (console == null) {
-            throw new GradleException('This task requires an interactive terminal. Run with: ./gradlew renameProject --console=plain')
-        }
-
         def folderName = rootProject.projectDir.name
         def currentModId = 'template'
         def currentModName = 'Template'
-        def currentPackageSuffix = 'template'
+        def currentPkg = 'dev.muon.template'
 
         println ""
         println "=== Project Rename Tool ==="
         println ""
         println "Current mod ID: ${currentModId}"
         println "Current mod name: ${currentModName}"
-        println "Current package: dev.muon.${currentPackageSuffix}"
+        println "Current package: ${currentPkg}"
         println ""
 
-        // --- Mod ID ---
-        def newModId = console.readLine("Enter new mod ID (lowercase, e.g. '${folderName.toLowerCase()}'): ")?.trim()
-        if (!newModId || !newModId.matches('[a-z][a-z0-9_]*')) {
-            throw new GradleException("Invalid mod ID '${newModId}'. Must be lowercase alphanumeric with underscores, starting with a letter.")
+        if (!project.hasProperty('modId')) {
+            throw new GradleException(
+                "Missing required property 'modId'.\n\n" +
+                "Usage:\n" +
+                "  ./gradlew renameProject -PmodId=<lowercase_id> [-PmodName=<PascalCase>] [-Ppackage=<full.package> | -PpackageSuffix=<lowercase>]\n\n" +
+                "Example (folder name '${folderName}'):\n" +
+                "  ./gradlew renameProject -PmodId=${folderName.toLowerCase()}\n" +
+                "  ./gradlew renameProject -PmodId=${folderName.toLowerCase()} -Ppackage=com.example.${folderName.toLowerCase()}\n\n" +
+                "If modName is omitted, a PascalCase version of modId is used.\n" +
+                "If neither package nor packageSuffix is given, the package defaults to dev.muon.<modId>.\n" +
+                "package takes precedence over packageSuffix if both are provided."
+            )
         }
 
-        // --- Mod Name ---
-        def suggestedName = newModId.split('_').collect { it.capitalize() }.join('')
-        def newModName = console.readLine("Enter new mod name (PascalCase, e.g. '${suggestedName}'): ")?.trim()
-        if (!newModName || !newModName.matches('[A-Z][a-zA-Z0-9]*')) {
-            throw new GradleException("Invalid mod name '${newModName}'. Must be PascalCase starting with an uppercase letter.")
+        def newModId = project.property('modId').toString().trim()
+        if (!newModId.matches('[a-z][a-z0-9_]*')) {
+            throw new GradleException("Invalid modId '${newModId}'. Must be lowercase alphanumeric with underscores, starting with a letter.")
         }
 
-        // --- Group suffix (package) ---
-        def newPackageSuffix = console.readLine("Enter new package suffix (e.g. '${newModId}'): ")?.trim()
-        if (!newPackageSuffix || !newPackageSuffix.matches('[a-z][a-z0-9_]*')) {
-            throw new GradleException("Invalid package suffix '${newPackageSuffix}'. Must be lowercase.")
+        def defaultModName = newModId.split('_').collect { it.capitalize() }.join('')
+        def newModName = project.hasProperty('modName') ? project.property('modName').toString().trim() : defaultModName
+        if (!newModName.matches('[A-Z][a-zA-Z0-9]*')) {
+            throw new GradleException("Invalid modName '${newModName}'. Must be PascalCase starting with an uppercase letter.")
         }
 
-        println ""
+        // Resolve the full new package: explicit -Ppackage wins, then -PpackageSuffix under dev.muon, then default dev.muon.<modId>
+        def newPkg
+        if (project.hasProperty('package')) {
+            newPkg = project.property('package').toString().trim()
+        } else if (project.hasProperty('packageSuffix')) {
+            newPkg = "dev.muon.${project.property('packageSuffix').toString().trim()}"
+        } else {
+            newPkg = "dev.muon.${newModId}"
+        }
+        if (!newPkg.matches('[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*')) {
+            throw new GradleException("Invalid package '${newPkg}'. Must be dot-separated lowercase segments (each starting with a letter).")
+        }
+
+        def oldPkg = currentPkg
+        def oldPkgPath = oldPkg.replace('.', '/')
+        def newPkgPath = newPkg.replace('.', '/')
+
         println "Will rename:"
         println "  mod ID:   ${currentModId} -> ${newModId}"
         println "  mod name: ${currentModName} -> ${newModName}"
-        println "  package:  dev.muon.${currentPackageSuffix} -> dev.muon.${newPackageSuffix}"
+        println "  package:  ${oldPkg} -> ${newPkg}"
         println ""
-        def confirm = console.readLine("Proceed? (y/N): ")?.trim()?.toLowerCase()
-        if (confirm != 'y') {
-            println "Aborted."
-            return
-        }
-
-        def oldPkg = "dev.muon.${currentPackageSuffix}"
-        def newPkg = "dev.muon.${newPackageSuffix}"
-        def oldPkgPath = "dev/muon/${currentPackageSuffix}"
-        def newPkgPath = "dev/muon/${newPackageSuffix}"
 
         // --- 1. Update gradle.properties ---
         println "Updating gradle.properties..."
         def propsFile = rootProject.file('gradle.properties')
         def propsText = propsFile.text
-        propsText = propsText.replaceAll("group=dev\\.muon\\.${currentPackageSuffix}", "group=dev.muon.${newPackageSuffix}")
+        propsText = propsText.replaceAll("group=${java.util.regex.Pattern.quote(oldPkg)}", "group=${newPkg}")
         propsText = propsText.replaceAll("mod_name=${currentModName}", "mod_name=${newModName}")
         propsText = propsText.replaceAll("mod_id=${currentModId}", "mod_id=${newModId}")
         propsText = propsText.replaceAll("description=${currentModName}", "description=${newModName}")

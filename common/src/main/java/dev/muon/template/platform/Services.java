@@ -1,6 +1,6 @@
 package dev.muon.template.platform;
 
-import dev.muon.template.Constants;
+import dev.muon.template.Template;
 import dev.muon.template.platform.services.IPlatformHelper;
 
 import java.util.ServiceLoader;
@@ -24,7 +24,7 @@ public class Services {
         final T loadedService = ServiceLoader.load(clazz, Services.class.getClassLoader())
                 .findFirst()
                 .orElseThrow(() -> new NullPointerException("Failed to load service for " + clazz.getName()));
-        Constants.LOG.debug("Loaded {} for service {}", loadedService, clazz);
+        Template.LOG.debug("Loaded {} for service {}", loadedService, clazz);
         return loadedService;
     }
 }

@@ -1,6 +1,6 @@
 package dev.muon.template.mixin;
 
-import dev.muon.template.Constants;
+import dev.muon.template.Template;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,7 +13,7 @@ public class MixinMinecraft {
     @Inject(at = @At("TAIL"), method = "<init>")
     private void init(CallbackInfo info) {
         
-        Constants.LOG.info("This line is printed by an example mod common mixin!");
-        Constants.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
+        Template.LOG.info("This line is printed by an example mod common mixin!");
+        Template.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
     }
 }

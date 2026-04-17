@@ -2,7 +2,7 @@ package dev.muon.template;
 
 import net.fabricmc.api.ModInitializer;
 
-public class Template implements ModInitializer {
+public class TemplateFabric implements ModInitializer {
     
     @Override
     public void onInitialize() {
@@ -12,7 +12,7 @@ public class Template implements ModInitializer {
         // project.
 
         // Use Fabric to bootstrap the Common mod.
-        Constants.LOG.info("Hello Fabric world!");
-        CommonClass.init();
+        Template.LOG.info("Hello Fabric world!");
+        Template.init();
     }
 }
