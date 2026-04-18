@@ -4,12 +4,87 @@ plugins {
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.141' apply false
     id 'dev.mixinmcp.decompile' version '0.8.0' apply false
-    id "me.modmuss50.mod-publish-plugin" version "0.8.3"
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
+
+// Multi-loader publishing — see https://modmuss50.github.io/mod-publish-plugin/multi_platform/
+// for the recommended root-level pattern. One named entry per loader points at that
+// subproject's jar, sharing common options via the `*Options { ... }` blocks.
+evaluationDependsOn(':fabric')
+evaluationDependsOn(':neoforge')
+
+// Compute all GString values OUTSIDE the publishMods closure. Inside the closure, Groovy's
+// delegate-first resolution shadows `version` (and `project.version` in some nested option
+// closures) with the extension's own Property<String>, whose toString is the descriptor
+// "property 'version'" — that string otherwise leaks into tagName / displayName.
+def projectVersion = project.version.toString()
+def mcVersion = project.minecraft_version.toString()
+def publishVersion = "${projectVersion}+${mcVersion}".toString()
+def fabricDisplayName = "Fabric ${projectVersion}+${mcVersion}".toString()
+def neoforgeDisplayName = "NeoForge ${projectVersion}+${mcVersion}".toString()
+
+publishMods {
+    changelog = rootProject.file("CHANGELOG.md").getText()
+    version = publishVersion
+    type = STABLE
+
+    if (project.findProperty('curseforge_id')) {
+        def cfOptions = curseforgeOptions {
+            accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
+            projectId = project.curseforge_id
+            projectSlug = project.mod_id
+            minecraftVersions.add(mcVersion)
+            requires {
+                slug = 'fzzy-config'
+            }
+        }
+
+        curseforge('curseforgeFabric') {
+            from cfOptions
+            file = project(':fabric').tasks.named('jar', Jar).flatMap { it.archiveFile }
+            modLoaders.add('fabric')
+            displayName = fabricDisplayName
+        }
+        curseforge('curseforgeNeoforge') {
+            from cfOptions
+            file = project(':neoforge').tasks.named('jar', Jar).flatMap { it.archiveFile }
+            modLoaders.add('neoforge')
+            displayName = neoforgeDisplayName
+        }
+    }
+
+    if (project.findProperty('modrinth_id')) {
+        def mrOptions = modrinthOptions {
+            accessToken = providers.environmentVariable('MODRINTH_TOKEN')
+            projectId = project.modrinth_id
+            minecraftVersions.add(mcVersion)
+            requires {
+                slug = 'fzzy-config'
+            }
+        }
+
+        modrinth('modrinthFabric') {
+            from mrOptions
+            file = project(':fabric').tasks.named('jar', Jar).flatMap { it.archiveFile }
+            modLoaders.add('fabric')
+            displayName = fabricDisplayName
+        }
+        modrinth('modrinthNeoforge') {
+            from mrOptions
+            file = project(':neoforge').tasks.named('jar', Jar).flatMap { it.archiveFile }
+            modLoaders.add('neoforge')
+            displayName = neoforgeDisplayName
+        }
+    }
+
+}
+// GitHub release publishing intentionally omitted — we only use github_owner / github_repo for
+// source/issues links in fabric.mod.json and neoforge.mods.toml. Anyone who wants GitHub releases
+// can wire it up from the mod-publish-plugin docs: https://modmuss50.github.io/mod-publish-plugin/
 
 tasks.register('renameProject') {
     group = 'setup'
-    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration. Usage: ./gradlew renameProject -PmodId=mymod [-PmodName=MyMod] [-PdisplayName="My Mod"] [-PfolderName=My-Mod] [-Ppackage=com.example.mymod]'
+    description = 'Renames the project: updates mod ID, package, class names, services, resources, and deletes Fabric run configs for regeneration. Usage: ./gradlew renameProject -PmodId=mymod [-PmodName=MyMod] [-PmodDisplayName="My Mod"] [-PfolderName=My-Mod] [-Ppackage=com.example.mymod]'
 
     doLast {
         def folderName = rootProject.projectDir.name
@@ -31,15 +106,15 @@ tasks.register('renameProject') {
             throw new GradleException(
                 "Missing required property 'modId'.\n\n" +
                 "Usage:\n" +
-                "  ./gradlew renameProject -PmodId=<lowercase_id> [-PmodName=<PascalCase>] [-PdisplayName=\"<Display Name>\"] [-PfolderName=<Folder-Name>] [-Ppackage=<full.package>]\n\n" +
+                "  ./gradlew renameProject -PmodId=<lowercase_id> [-PmodName=<PascalCase>] [-PmodDisplayName=\"<Display Name>\"] [-PfolderName=<Folder-Name>] [-Ppackage=<full.package>]\n\n" +
                 "Example (folder name '${folderName}'):\n" +
                 "  ./gradlew renameProject -PmodId=${folderName.toLowerCase().replace('-', '_')}\n" +
-                "  ./gradlew renameProject -PmodId=my_mod -PdisplayName=\"My Mod\" -PfolderName=My-Mod\n\n" +
+                "  ./gradlew renameProject -PmodId=my_mod -PmodDisplayName=\"My Mod\" -PfolderName=My-Mod\n\n" +
                 "Each optional property, if omitted, is inferred from modId:\n" +
-                "  modName      -> PascalCase join       (my_mod -> MyMod)\n" +
-                "  displayName  -> Title Case with spaces (my_mod -> 'My Mod')\n" +
-                "  folderName   -> Title Case with dashes (my_mod -> My-Mod)\n" +
-                "  package      -> dev.muon.<modId>"
+                "  modName         -> PascalCase join       (my_mod -> MyMod)\n" +
+                "  modDisplayName  -> Title Case with spaces (my_mod -> 'My Mod')\n" +
+                "  folderName      -> Title Case with dashes (my_mod -> My-Mod)\n" +
+                "  package         -> dev.muon.<modId>"
             )
         }
 
@@ -58,9 +133,9 @@ tasks.register('renameProject') {
             throw new GradleException("Invalid modName '${newModName}'. Must be PascalCase starting with an uppercase letter (no spaces or dashes).")
         }
 
-        def newDisplayName = project.hasProperty('displayName') ? project.property('displayName').toString().trim() : defaultDisplayName
+        def newDisplayName = project.hasProperty('modDisplayName') ? project.property('modDisplayName').toString().trim() : defaultDisplayName
         if (!newDisplayName.matches('[A-Za-z0-9][A-Za-z0-9 ]*')) {
-            throw new GradleException("Invalid displayName '${newDisplayName}'. Must contain only letters, digits, and spaces.")
+            throw new GradleException("Invalid modDisplayName '${newDisplayName}'. Must contain only letters, digits, and spaces.")
         }
 
         def newFolderName = project.hasProperty('folderName') ? project.property('folderName').toString().trim() : defaultFolderName

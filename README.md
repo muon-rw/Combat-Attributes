@@ -17,7 +17,7 @@ ___
   ```
 - Optional properties (each is inferred from `modId` underscores if omitted):
   - `-PmodName=MyMod` — PascalCase Java class prefix *(`my_mod` → `MyMod`)*
-  - `-PdisplayName="My Mod"` — name shown in modmenu / NeoForge mods list *(`my_mod` → `My Mod`)*
+  - `-PmodDisplayName="My Mod"` — name shown in modmenu / NeoForge mods list *(`my_mod` → `My Mod`)*
   - `-PfolderName=My-Mod` — `rootProject.name` and expected folder name *(`my_mod` → `My-Mod`)*
   - `-Ppackage=com.example.mymod` — full Java package *(defaults to `dev.muon.<modId>`)*
 - **IMPORTANT** The `rootProject.name` in `settings.gradle` should match the folder name exactly, case sensitive — rename the folder to match after running the task
