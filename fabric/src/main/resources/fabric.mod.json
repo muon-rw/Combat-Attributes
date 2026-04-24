@@ -16,7 +16,7 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-          "dev.muon.template.TemplateFabric"
+          "dev.muon.combat_attributes.CombatAttributesFabric"
         ]
     },
     "mixins": [
