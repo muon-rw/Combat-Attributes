@@ -1,0 +1,14 @@
+{
+  "attribute.combat_attributes.melee_crit_chance": "Melee Critical Chance",
+  "attribute.combat_attributes.melee_crit_damage": "Melee Critical Damage",
+  "attribute.combat_attributes.ranged_damage": "Ranged Damage",
+  "attribute.combat_attributes.ranged_crit_chance": "Ranged Critical Chance",
+  "attribute.combat_attributes.ranged_crit_damage": "Ranged Critical Damage",
+  "attribute.combat_attributes.magic_crit_chance": "Magic Critical Chance",
+  "attribute.combat_attributes.magic_crit_damage": "Magic Critical Damage",
+  "attribute.combat_attributes.evasion": "Evasion",
+  "attribute.combat_attributes.lifesteal": "Lifesteal",
+  "attribute.combat_attributes.draw_speed": "Draw Speed",
+  "attribute.combat_attributes.arrow_velocity": "Arrow Velocity",
+  "attribute.combat_attributes.accuracy": "Accuracy"
+}

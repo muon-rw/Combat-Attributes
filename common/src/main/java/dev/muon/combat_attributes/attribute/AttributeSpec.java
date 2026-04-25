@@ -2,6 +2,7 @@ package dev.muon.combat_attributes.attribute;
 
 import me.fzzyhmstrs.fzzy_config.annotations.Comment;
 import me.fzzyhmstrs.fzzy_config.config.ConfigSection;
+import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedBoolean;
 import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedExpression;
 import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -10,17 +11,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * One attribute's full configuration: bounds + per-operation diminishing formulas.
+ * One attribute's full configuration: bounds, diminishing toggle, and per-operation formulas.
  *
- * <p>{@link #defaultValue} / {@link #minValue} / {@link #maxValue} are baked into the
- * underlying {@code RangedAttribute} at registration time, so changes to those fields
+ * <p>{@link #defaultValue} / {@link #minValue} / {@link #maxValue} and {@link #diminishing}
+ * are baked into the underlying attribute at registration time, so changes to those fields
  * require a restart to take effect. The formula fields are read on every
  * {@code AttributeInstance#getValue()} call (cached behind FzzyConfig's getter), so
- * formula edits propagate live.
+ * formula edits propagate live — but only matter when {@link #diminishing} is {@code true}.
+ *
+ * <p>When {@link #diminishing} is {@code false}, the loader registers a vanilla
+ * {@code RangedAttribute} and the formulas are unused — modifier math is exactly vanilla
+ * (notably ADD_MULTIPLIED_TOTAL compounds per modifier rather than collapsing into a sum).
  *
  * <p>Formula variable {@code x} is the sum of {@code modifier.amount()} for every
- * modifier of the given operation on the entity. Use {@code "x"} for linear /
- * non-diminishing behaviour.
+ * modifier of the given operation on the entity. Use {@code "x"} for linear stacking
+ * within the diminishing path (still differs from vanilla on ADD_MULTIPLIED_TOTAL).
  */
 public class AttributeSpec extends ConfigSection {
 
@@ -33,25 +38,30 @@ public class AttributeSpec extends ConfigSection {
     @Comment("Hard maximum the attribute clamps to. Baked at startup; restart to apply changes.")
     public ValidatedDouble maxValue;
 
-    @Comment("Formula combining ADD_VALUE modifiers. 'x' = raw sum of amounts. Use 'x' for vanilla linear stacking.")
+    @Comment("If true, modifier stacking goes through the formulas below (soft cap behavior). " +
+            "If false, vanilla stacking applies and the formulas are inert. Baked at startup; restart to apply changes.")
+    public ValidatedBoolean diminishing;
+
+    @Comment("Formula combining ADD_VALUE modifiers. 'x' = raw sum of amounts. Used only when diminishing=true.")
     public ValidatedExpression addValueFormula;
 
-    @Comment("Formula combining ADD_MULTIPLIED_BASE modifiers. 'x' = raw sum of amounts.")
+    @Comment("Formula combining ADD_MULTIPLIED_BASE modifiers. 'x' = raw sum of amounts. Used only when diminishing=true.")
     public ValidatedExpression addMultipliedBaseFormula;
 
-    @Comment("Formula combining ADD_MULTIPLIED_TOTAL modifiers. 'x' = raw sum of amounts.")
+    @Comment("Formula combining ADD_MULTIPLIED_TOTAL modifiers. 'x' = raw sum of amounts. Used only when diminishing=true.")
     public ValidatedExpression addMultipliedTotalFormula;
 
     public AttributeSpec() {
         // Required no-arg constructor for FzzyConfig deserialization.
-        this(0.0, 0.0, 1.0, "x");
+        this(0.0, 0.0, 1.0, "x", false);
     }
 
-    public AttributeSpec(double defaultValue, double minValue, double maxValue, String formula) {
+    public AttributeSpec(double defaultValue, double minValue, double maxValue, String formula, boolean diminishing) {
         // ValidatedDouble(default, max, min) — note FzzyConfig's argument order.
         this.defaultValue = new ValidatedDouble(defaultValue, 1_000_000.0, -1_000_000.0);
         this.minValue = new ValidatedDouble(minValue, 1_000_000.0, -1_000_000.0);
         this.maxValue = new ValidatedDouble(maxValue, 1_000_000.0, -1_000_000.0);
+        this.diminishing = new ValidatedBoolean(diminishing);
         this.addValueFormula = new ValidatedExpression(formula, Set.of('x'));
         this.addMultipliedBaseFormula = new ValidatedExpression(formula, Set.of('x'));
         this.addMultipliedTotalFormula = new ValidatedExpression(formula, Set.of('x'));
