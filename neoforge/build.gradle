@@ -11,6 +11,10 @@ dependencies {
     jarJar(implementation("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixin_squared_version}")) {
         version { strictly '[0.3.4,)'; prefer '0.3.7-beta.1' }
     }
+
+    // Dynamic Difficulty
+    implementation "dev.muon.dynamic_difficulty:dynamic_difficulty-neoforge:${dynamic_difficulty_version}+${minecraft_version}"
+
 }
 
 neoForge {

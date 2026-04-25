@@ -19,6 +19,8 @@ dependencies {
     }
 
     implementation "dev.muon:dynamic-tooltips:${dynamic_tooltips_version}+${minecraft_version}"
+    implementation "dev.muon.dynamic_difficulty:dynamic_difficulty-fabric:${dynamic_difficulty_version}+${minecraft_version}"
+
 }
 
 loom {
