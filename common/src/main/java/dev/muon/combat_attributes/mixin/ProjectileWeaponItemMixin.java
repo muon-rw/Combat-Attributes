@@ -19,7 +19,7 @@ import java.util.List;
  * parameters before they're passed down to per-projectile shooting.
  *
  * <p>Velocity scaling: {@code power *= (1 + arrow_velocity)} — additive percent bonus
- * on the muzzle speed. Note that {@link net.minecraft.world.entity.projectile.AbstractArrow}'s
+ * on the muzzle speed. Note that {@link net.minecraft.world.entity.projectile.arrow.AbstractArrow}'s
  * direct-hit damage is computed from the actual flight velocity, so this also indirectly
  * boosts arrow hit damage (in addition to the {@code ranged_damage} flat bonus applied
  * via {@code LivingEntityHurtMixin}).
