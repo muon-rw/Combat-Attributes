@@ -1,0 +1,26 @@
+package dev.muon.combat_attributes;
+
+import dev.muon.combat_attributes.compat.DynamicTooltipsIntegration;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
+
+/**
+ * Client-only entrypoint. Hosts integrations that touch client-only mods (currently
+ * Dynamic Tooltips), so the dedicated-server jar never resolves their classes.
+ * Dedicated servers still load {@link CombatAttributesFabric} for attribute registration
+ * and the diminishing math.
+ *
+ * <p>Dynamic Tooltips is a soft dep — without it, our percent-flavored attributes display
+ * as flat decimals (e.g. {@code +0.1} instead of {@code +10%}). The {@code isModLoaded}
+ * gate keeps the JVM from class-loading {@link DynamicTooltipsIntegration} (and through it,
+ * DT's API class) when DT isn't on the classpath.
+ */
+public class CombatAttributesFabricClient implements ClientModInitializer {
+
+    @Override
+    public void onInitializeClient() {
+        if (FabricLoader.getInstance().isModLoaded("dynamictooltips")) {
+            DynamicTooltipsIntegration.init();
+        }
+    }
+}

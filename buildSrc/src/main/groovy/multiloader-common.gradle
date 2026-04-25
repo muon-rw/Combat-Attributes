@@ -48,6 +48,8 @@ repositories {
     maven {url = 'https://maven.blamejared.com'}
     maven {url = 'https://maven.fzzyhmstrs.me/'}
     maven {url = 'https://maven.fabricmc.net/'} // Required by Fzzy even in common
+    maven {url = 'https://maven.muon.rip/releases/'}
+
 
     // MixinSquared
     maven { url = "https://maven.bawnorton.com/releases" }

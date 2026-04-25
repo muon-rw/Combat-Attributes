@@ -17,6 +17,8 @@ dependencies {
         exclude(group: "me.lucko")
         exclude(group: "com.terraformersmc")
     }
+
+    implementation "dev.muon:dynamic-tooltips:${dynamic_tooltips_version}+${minecraft_version}"
 }
 
 loom {

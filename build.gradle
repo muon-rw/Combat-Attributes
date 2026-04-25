@@ -44,6 +44,9 @@ publishMods {
             file = project(':fabric').tasks.named('jar', Jar).flatMap { it.archiveFile }
             modLoaders.add('fabric')
             displayName = fabricDisplayName
+            optional {
+                slug = 'dynamic-tooltips'
+            }
         }
         curseforge('curseforgeNeoforge') {
             from cfOptions
@@ -68,6 +71,9 @@ publishMods {
             file = project(':fabric').tasks.named('jar', Jar).flatMap { it.archiveFile }
             modLoaders.add('fabric')
             displayName = fabricDisplayName
+            optional {
+                slug = 'dynamic-tooltips'
+            }
         }
         modrinth('modrinthNeoforge') {
             from mrOptions
@@ -88,11 +94,13 @@ tasks.register('renameProject') {
 
     doLast {
         def folderName = rootProject.projectDir.name
-        def currentModId = 'template'
-        def currentModName = 'Template'        // PascalCase Java class prefix
-        def currentDisplayName = 'Template'    // shown in modmenu / mods list
-        def currentFolderName = 'Template'     // rootProject.name, folder on disk
-        def currentPkg = 'dev.muon.template'
+        // Auto-detect current state from project files so this task is rerunnable
+        // after a previous rename (rather than only working from a pristine 'template' state).
+        def currentModId = project.mod_id.toString()
+        def currentDisplayName = project.mod_name.toString()         // shown in modmenu / mods list
+        def currentPkg = project.group.toString()
+        def currentFolderName = rootProject.name                      // settings.gradle, folder on disk
+        def currentModName = currentDisplayName.split(' ').collect { it.capitalize() }.join('')  // PascalCase Java class prefix
 
         println ""
         println "=== Project Rename Tool ==="

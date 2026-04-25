@@ -1,6 +1,6 @@
 package dev.muon.combat_attributes;
 
-
+import dev.muon.combat_attributes.attribute.ModAttributesNeoforge;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -8,14 +8,11 @@ import net.neoforged.fml.common.Mod;
 public class CombatAttributesNeoforge {
 
     public CombatAttributesNeoforge(IEventBus eventBus) {
-
-        // This method is invoked by the NeoForge mod loader when it is ready
-        // to load your mod. You can access NeoForge and Common code in this
-        // project.
-
-        // Use NeoForge to bootstrap the Common mod.
-        CombatAttributes.LOG.info("Hello NeoForge world!");
+        // Common init runs first — registers FzzyConfig configs at the top of init(),
+        // which the attribute constructors read from for default/min/max bounds.
         CombatAttributes.init();
 
+        ModAttributesNeoforge.REGISTRY.register(eventBus);
+        ModAttributesNeoforge.init();
     }
 }

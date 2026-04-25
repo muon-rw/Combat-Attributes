@@ -23,6 +23,7 @@ public final class Configs {
     public static ConfigClient CLIENT;
     public static ConfigServer SERVER;
     public static ConfigSync SYNC;
+    public static ConfigAttributes ATTRIBUTES;
 
     private Configs() {}
 
@@ -35,5 +36,6 @@ public final class Configs {
         CLIENT = ConfigApi.registerAndLoadConfig((Supplier<ConfigClient>) ConfigClient::new, RegisterType.CLIENT);
         SERVER = ConfigApi.registerAndLoadConfig((Supplier<ConfigServer>) ConfigServer::new, RegisterType.SERVER);
         SYNC = ConfigApi.registerAndLoadConfig((Supplier<ConfigSync>) ConfigSync::new, RegisterType.BOTH);
+        ATTRIBUTES = ConfigApi.registerAndLoadConfig((Supplier<ConfigAttributes>) ConfigAttributes::new, RegisterType.BOTH);
     }
 }

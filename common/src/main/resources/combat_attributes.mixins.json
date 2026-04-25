@@ -4,9 +4,10 @@
   "package": "dev.muon.combat_attributes.mixin",
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
-  "mixins": [],
+  "mixins": [
+    "AttributeInstanceMixin"
+  ],
   "client": [
-    "MixinMinecraft"
   ],
   "server": [],
   "injectors": {

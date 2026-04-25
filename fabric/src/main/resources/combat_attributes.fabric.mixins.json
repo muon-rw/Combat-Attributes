@@ -5,9 +5,10 @@
   "plugin": "dev.muon.combat_attributes.MixinConfigPluginFabric",
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "LivingEntityMixin"
+  ],
   "client": [
-    "MixinTitleScreen"
   ],
   "server": [],
   "injectors": {
