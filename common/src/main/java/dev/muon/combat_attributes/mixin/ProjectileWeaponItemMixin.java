@@ -1,16 +1,12 @@
 package dev.muon.combat_attributes.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.muon.combat_attributes.attribute.ModAttributes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-
-import java.util.List;
 
 /**
  * Arrow-velocity and accuracy integration for both bows and crossbows. Hooks the
@@ -26,25 +22,24 @@ import java.util.List;
  *
  * <p>Accuracy scaling: {@code uncertainty *= max(0, 1 - accuracy)} — perfect accuracy
  * (1.0) zeroes out spread; intermediate values reduce it proportionally.
+ *
+ * <p>Shooter is captured via MixinExtras' {@code @Local(argsOnly = true)} for consistency
+ * with the other projectile-related mixins. Positional trailing-arg capture also works
+ * with current sponge-mixin versions on both loaders, but {@code @Local} is the more
+ * declarative and version-robust pattern.
  */
 @Mixin(value = ProjectileWeaponItem.class, remap = false)
 public class ProjectileWeaponItemMixin {
 
-    @ModifyVariable(method = "shoot", at = @At("HEAD"), argsOnly = true, name = "power")
-    private float combat_attributes$scaleVelocity(float power,
-                                                  ServerLevel level, LivingEntity shooter,
-                                                  InteractionHand hand, ItemStack weapon,
-                                                  List<ItemStack> projectiles) {
+    @ModifyVariable(method = "shoot", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private float combat_attributes$scaleVelocity(float power, @Local(argsOnly = true, name = "shooter") LivingEntity shooter) {
         double arrowVelocity = ModAttributes.valueOrDefault(shooter, ModAttributes.arrowVelocity());
         if (arrowVelocity <= 0.0) return power;
         return (float) (power * (1.0 + arrowVelocity));
     }
 
-    @ModifyVariable(method = "shoot", at = @At("HEAD"), argsOnly = true, name = "uncertainty")
-    private float combat_attributes$scaleAccuracy(float uncertainty,
-                                                  ServerLevel level, LivingEntity shooter,
-                                                  InteractionHand hand, ItemStack weapon,
-                                                  List<ItemStack> projectiles) {
+    @ModifyVariable(method = "shoot", at = @At("HEAD"), argsOnly = true, ordinal = 1)
+    private float combat_attributes$scaleAccuracy(float uncertainty, @Local(argsOnly = true, name = "shooter") LivingEntity shooter) {
         double accuracy = ModAttributes.valueOrDefault(shooter, ModAttributes.accuracy());
         if (accuracy <= 0.0) return uncertainty;
         return (float) (uncertainty * Math.max(0.0, 1.0 - accuracy));
