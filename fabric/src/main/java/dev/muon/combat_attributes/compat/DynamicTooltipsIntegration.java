@@ -11,9 +11,8 @@ import net.minecraft.resources.Identifier;
  * {@code PercentageAttribute} directly). Users can countermand any registration from their
  * own DT config — the API merges with user config, with config taking precedence.
  *
- * <p>Must be invoked AFTER {@code ModAttributesFabric.init()} so the holder map is populated;
- * the percent flag itself comes off {@link ModAttributes#ALL}, which is independent of
- * registration order.
+ * <p>Reads the percent flag off {@link ModAttributes#ALL}, which is independent of
+ * registration order — safe to call before or after attribute holders are populated.
  */
 public final class DynamicTooltipsIntegration {
 

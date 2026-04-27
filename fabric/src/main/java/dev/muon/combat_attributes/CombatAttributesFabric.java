@@ -7,9 +7,10 @@ public class CombatAttributesFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Common init runs first — registers FzzyConfig configs at the top of init(),
-        // which the attribute constructors read from for default/min/max bounds.
         CombatAttributes.init();
-        ModAttributesFabric.init();
+        // ModAttributesFabric registers from <clinit>; touching the class via this
+        // no-op forces it. Idempotent with the LivingEntityMixin trampoline that
+        // also calls ensureInitialized() in case createLivingAttributes runs first.
+        ModAttributesFabric.ensureInitialized();
     }
 }
