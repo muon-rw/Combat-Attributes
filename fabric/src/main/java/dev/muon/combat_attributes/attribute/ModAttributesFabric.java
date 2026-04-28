@@ -2,6 +2,7 @@ package dev.muon.combat_attributes.attribute;
 
 import dev.muon.combat_attributes.CombatAttributes;
 import dev.muon.combat_attributes.config.Configs;
+import dev.muon.combat_attributes.mixin.AttributeSupplierAccessor;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -58,14 +59,16 @@ public final class ModAttributesFabric {
      * their base values. Called from {@code DefaultAttributesMixin}, which caches
      * the result so each entity type pays the rebuild cost once.
      *
-     * <p>Reads {@code original.instances} via the {@code combat_attributes}
-     * access widener, since vanilla's {@code AttributeSupplier.Builder} lacks a
-     * copy constructor (NeoForge has one, but it is not in vanilla).
+     * <p>Reads {@code original.instances} via {@link AttributeSupplierAccessor}, since
+     * vanilla's {@code AttributeSupplier.Builder} lacks a copy constructor (NeoForge has
+     * one, but it is not in vanilla).
      */
     public static AttributeSupplier augment(AttributeSupplier original) {
         ensureInitialized();
         AttributeSupplier.Builder builder = AttributeSupplier.builder();
-        for (Map.Entry<Holder<Attribute>, AttributeInstance> entry : original.instances.entrySet()) {
+        Map<Holder<Attribute>, AttributeInstance> instances =
+                ((AttributeSupplierAccessor) original).combat_attributes$getInstances();
+        for (Map.Entry<Holder<Attribute>, AttributeInstance> entry : instances.entrySet()) {
             builder.add(entry.getKey(), entry.getValue().getBaseValue());
         }
         for (Holder<Attribute> holder : ModAttributes.allHolders()) {

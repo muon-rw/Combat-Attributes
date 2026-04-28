@@ -6,9 +6,7 @@
   "compatibilityLevel": "JAVA_18",
   "mixins": [
     "AttributeInstanceMixin",
-    "BowItemMixin",
-    "CrossbowItemMixin",
-    "LivingEntityHurtMixin",
+    "LivingEntityMixin",
     "PlayerJumpCritMixin",
     "ProjectileShootHelperMixin",
     "ProjectileWeaponItemMixin"

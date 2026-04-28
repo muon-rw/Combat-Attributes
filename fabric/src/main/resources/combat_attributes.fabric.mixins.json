@@ -6,6 +6,7 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AttributeSupplierAccessor",
     "DefaultAttributesMixin"
   ],
   "client": [
