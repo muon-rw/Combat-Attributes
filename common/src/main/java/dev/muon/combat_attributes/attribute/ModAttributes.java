@@ -35,8 +35,9 @@ public final class ModAttributes {
 
     /**
      * Pairs an attribute id with its {@link AttributeSpec} supplier and an optional
-     * percent-display scale factor (for Dynamic Tooltips on Fabric / future
-     * {@code PercentageAttribute} swap on NeoForge).
+     * percent-display scale factor. Loader code consumes the scale: Fabric publishes it
+     * to Dynamic Tooltips at client init; NeoForge picks {@code PercentageAttribute} /
+     * {@code DiminishingPercentageAttribute} as the concrete class at registration time.
      */
     public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale) {
         public static Entry percent(String id, Supplier<AttributeSpec> spec, double scale) {

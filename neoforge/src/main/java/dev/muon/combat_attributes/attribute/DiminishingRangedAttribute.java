@@ -6,10 +6,10 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import java.util.function.Supplier;
 
 /**
- * NeoForge concrete attribute. Currently extends vanilla {@link RangedAttribute};
- * once Dynamic Tooltips owns percent-display config (Fabric) we can swap the
- * superclass to NeoForge's {@code PercentageAttribute} on a per-attribute basis
- * for the percent-flavored ones — same {@link DiminishingAttribute} contract either way.
+ * NeoForge concrete attribute for non-percent diminishing entries. Percent-flavored
+ * diminishing entries use {@link DiminishingPercentageAttribute} so they pick up
+ * NeoForge's percent-display path; both share the same {@link DiminishingAttribute}
+ * contract.
  */
 public class DiminishingRangedAttribute extends RangedAttribute implements DiminishingAttribute {
 
