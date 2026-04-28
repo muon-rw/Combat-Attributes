@@ -1,14 +1,26 @@
 {
   "attribute.combat_attributes.melee_crit_chance": "Melee Critical Chance",
+  "attribute.combat_attributes.melee_crit_chance.desc": "Chance for a melee attack to land a critical strike.",
   "attribute.combat_attributes.melee_crit_damage": "Melee Critical Damage",
+  "attribute.combat_attributes.melee_crit_damage.desc": "Damage multiplier applied on a melee critical strike.",
   "attribute.combat_attributes.ranged_damage": "Ranged Damage",
+  "attribute.combat_attributes.ranged_damage.desc": "Flat damage added to non-magic projectile attacks.",
   "attribute.combat_attributes.ranged_crit_chance": "Ranged Critical Chance",
+  "attribute.combat_attributes.ranged_crit_chance.desc": "Chance for a projectile attack to land a critical strike.",
   "attribute.combat_attributes.ranged_crit_damage": "Ranged Critical Damage",
+  "attribute.combat_attributes.ranged_crit_damage.desc": "Damage multiplier applied on a ranged critical strike.",
   "attribute.combat_attributes.magic_crit_chance": "Magic Critical Chance",
+  "attribute.combat_attributes.magic_crit_chance.desc": "Chance for a magic attack to land a critical strike.",
   "attribute.combat_attributes.magic_crit_damage": "Magic Critical Damage",
+  "attribute.combat_attributes.magic_crit_damage.desc": "Damage multiplier applied on a magic critical strike.",
   "attribute.combat_attributes.evasion": "Evasion",
+  "attribute.combat_attributes.evasion.desc": "Chance to dodge incoming damage of any source.",
   "attribute.combat_attributes.lifesteal": "Lifesteal",
+  "attribute.combat_attributes.lifesteal.desc": "Fraction of any damage dealt within attack range that heals the attacker.",
   "attribute.combat_attributes.draw_speed": "Draw Speed",
+  "attribute.combat_attributes.draw_speed.desc": "Speeds up bow draw time and crossbow charge time.",
   "attribute.combat_attributes.arrow_velocity": "Arrow Velocity",
-  "attribute.combat_attributes.accuracy": "Accuracy"
+  "attribute.combat_attributes.arrow_velocity.desc": "Increases the launch speed of arrows fired from bows and crossbows.",
+  "attribute.combat_attributes.accuracy": "Accuracy",
+  "attribute.combat_attributes.accuracy.desc": "Reduces spread of fired arrows; at maximum, removes all inaccuracy."
 }
