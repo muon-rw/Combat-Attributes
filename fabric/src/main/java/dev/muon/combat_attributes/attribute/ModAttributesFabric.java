@@ -7,25 +7,25 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
+
+import java.util.Map;
 
 /**
  * Fabric-side attribute registration. Drives off {@link ModAttributes#ALL} so the
  * source of truth stays in common.
  *
  * <p>Registration runs from the class's static initializer. Both the
- * {@code LivingEntity#createLivingAttributes} mixin and the
+ * {@code DefaultAttributes#getSupplier} mixin and the
  * {@code ModInitializer.onInitialize} entrypoint reach registration through
  * {@link #ensureInitialized()}, which is a no-op call that exists only to force
  * {@code <clinit>}. Whichever runs first wins; subsequent calls are no-ops because
- * the JVM runs {@code <clinit>} exactly once.
- *
- * <p>Why eager class-init instead of registering on {@code onInitialize}: nothing in
- * Fabric guarantees that {@code DefaultAttributes.<clinit>} (which builds every
- * vanilla entity's {@link net.minecraft.world.entity.ai.attributes.AttributeSupplier})
- * runs after our entrypoint. If it raced ahead, the {@code createLivingAttributes}
- * mixin would fire against an empty holder map and entities would ship without our
- * attributes — matching the symptom this class was rewritten to fix.
+ * the JVM runs {@code <clinit>} exactly once. The mixin call is defensive —
+ * {@code getSupplier} is invoked at entity-construction time, well after
+ * {@code onInitialize}, so in practice the entrypoint path always populates the
+ * holder map first.
  *
  * <p>Reads {@code AttributeSpec.diminishing} per entry and registers either a
  * {@link DiminishingRangedAttribute} or vanilla {@link RangedAttribute}. Vanilla
@@ -45,11 +45,36 @@ public final class ModAttributesFabric {
 
     /**
      * No-op trampoline. Calling it forces this class's {@code <clinit>}, which
-     * registers every mod attribute exactly once. Both the Fabric mixin and the
-     * mod entrypoint call this so registration is guaranteed before the first read,
-     * regardless of which path the JVM hits first.
+     * registers every mod attribute exactly once. Called from
+     * {@code ModInitializer.onInitialize} (the primary path) and from
+     * {@link #augment(AttributeSupplier)} (defensive — {@code getSupplier} is not
+     * invoked before mod load completes, but the call is cheap).
      */
     public static void ensureInitialized() {}
+
+    /**
+     * Builds a copy of {@code original} that includes every Combat Attributes
+     * holder in addition to the original's attributes. Existing entries keep
+     * their base values. Called from {@code DefaultAttributesMixin}, which caches
+     * the result so each entity type pays the rebuild cost once.
+     *
+     * <p>Reads {@code original.instances} via the {@code combat_attributes}
+     * access widener, since vanilla's {@code AttributeSupplier.Builder} lacks a
+     * copy constructor (NeoForge has one, but it is not in vanilla).
+     */
+    public static AttributeSupplier augment(AttributeSupplier original) {
+        ensureInitialized();
+        AttributeSupplier.Builder builder = AttributeSupplier.builder();
+        for (Map.Entry<Holder<Attribute>, AttributeInstance> entry : original.instances.entrySet()) {
+            builder.add(entry.getKey(), entry.getValue().getBaseValue());
+        }
+        for (Holder<Attribute> holder : ModAttributes.allHolders()) {
+            if (!original.hasAttribute(holder)) {
+                builder.add(holder);
+            }
+        }
+        return builder.build();
+    }
 
     private static void registerAll() {
         for (ModAttributes.Entry entry : ModAttributes.ALL) {

@@ -9,8 +9,9 @@ public class CombatAttributesFabric implements ModInitializer {
     public void onInitialize() {
         CombatAttributes.init();
         // ModAttributesFabric registers from <clinit>; touching the class via this
-        // no-op forces it. Idempotent with the LivingEntityMixin trampoline that
-        // also calls ensureInitialized() in case createLivingAttributes runs first.
+        // no-op forces it. DefaultAttributesMixin calls augment(), which also
+        // forces <clinit>, as a defensive trampoline — idempotent because the JVM
+        // runs <clinit> once.
         ModAttributesFabric.ensureInitialized();
     }
 }
