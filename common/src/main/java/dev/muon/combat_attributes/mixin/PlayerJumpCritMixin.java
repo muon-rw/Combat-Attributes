@@ -16,6 +16,6 @@ public class PlayerJumpCritMixin {
 
     @ModifyReturnValue(method = "canCriticalAttack", at = @At("RETURN"))
     private boolean combat_attributes$suppressJumpCrit(boolean original) {
-        return original && !Configs.SYNC.disableVanillaJumpCrits.get();
+        return original && !Configs.GENERAL.disableVanillaJumpCrits.get();
     }
 }

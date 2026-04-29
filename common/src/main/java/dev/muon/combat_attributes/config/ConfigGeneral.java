@@ -15,13 +15,11 @@ import net.minecraft.resources.Identifier;
  * <p>File: <code>config/combat_attributes/combat_attributes-sync.toml</code>
  *
  * @see ConfigAttributes for per-attribute defaults / bounds / formulas
- * @see ConfigClient    for client-only, non-synced settings
- * @see ConfigServer    for server-only, non-synced settings
  */
-public class ConfigSync extends Config {
+public class ConfigGeneral extends Config {
 
-    public ConfigSync() {
-        super(Identifier.fromNamespaceAndPath(CombatAttributes.MOD_ID, "sync"));
+    public ConfigGeneral() {
+        super(Identifier.fromNamespaceAndPath(CombatAttributes.MOD_ID, "general"));
     }
 
     @Comment("If true, vanilla's jump-crit damage bonus is suppressed so it doesn't stack with this mod's Melee Crit attribute. " +
