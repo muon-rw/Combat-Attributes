@@ -1,35 +1,45 @@
 package dev.muon.combat_attributes.attribute;
 
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-
 /**
- * Marker interface for attributes whose modifiers combine via a soft-cap formula
- * rather than vanilla's pure linear sum / multiplicative product per operation.
+ * Marker interface for attributes whose modifiers combine via {@link AttributeSpec#combineAll}
+ * (soft cap / probabilistic union) rather than vanilla's per-operation linear sum.
  *
  * <p>Concrete classes typically extend either vanilla {@code RangedAttribute} (Fabric)
  * or NeoForge's {@code PercentageAttribute} (NeoForge) and implement this. The common
  * {@code AttributeInstance#calculateValue} mixin checks {@code instanceof DiminishingAttribute}
- * and replaces vanilla per-operation summation with {@link #combine(double, AttributeModifier.Operation)}.
+ * and delegates the entire base + ops → final-value math to {@link #combineAll}; vanilla
+ * attributes keep their original behavior unchanged.
  *
- * <p>Diminishing applies to all three operations:
- * {@code ADD_VALUE}, {@code ADD_MULTIPLIED_BASE}, {@code ADD_MULTIPLIED_TOTAL}. An implementation
- * that wants linear (non-diminished) behaviour for some operation should return {@code sum}
- * unchanged for that case.
+ * <p>Linear-stacking attributes ({@link AttributeSpec.StackingMode#LINEAR}) don't implement
+ * this interface, so the mixin short-circuits and they pay zero cost relative to vanilla.
  */
 public interface DiminishingAttribute {
 
     /**
-     * Combines the raw sum of modifier amounts for a single operation into the value
-     * that vanilla would otherwise have summed linearly. The mixin then applies it as:
-     * <pre>
-     *   result = (base + combine(addValueSum, ADD_VALUE))
-     *          * (1 + combine(addBaseSum,  ADD_MULTIPLIED_BASE))
-     *          * (1 + combine(addTotalSum, ADD_MULTIPLIED_TOTAL))
-     * </pre>
+     * Computes the final attribute value from the base value and the raw per-operation
+     * modifier sums. Replaces vanilla's
+     * {@code (base + Σadd) + ΣmulBase·base + (Π(1+mulTotal) − 1)·…} entirely.
      *
-     * @param sum sum of {@code modifier.amount()} for every modifier of this {@code operation}
-     * @param operation which operation this sum was collected for
-     * @return diminished value to substitute for the raw sum
+     * @param base         the entity's base value for this attribute
+     * @param addRaw       sum of every {@code ADD_VALUE} modifier amount
+     * @param mulBaseRaw   sum of every {@code ADD_MULTIPLIED_BASE} modifier amount
+     * @param mulTotalRaw  sum of every {@code ADD_MULTIPLIED_TOTAL} modifier amount
+     * @return final value before {@code sanitizeValue} clamping
      */
-    double combine(double sum, AttributeModifier.Operation operation);
+    double combineAll(double base, double addRaw, double mulBaseRaw, double mulTotalRaw);
+
+    /**
+     * Per-operation asymptote — the most any single operation slot can contribute,
+     * a.k.a. the "M" in {@code M*x/(x+k)}. For PROBABILISTIC stacking this is the
+     * per-source probability cap; for SOFT_CAP it's the maximum additive bonus.
+     * Exposed for UI use (tooltips that show players the soft-cap value).
+     */
+    double softCap();
+
+    /**
+     * {@code true} if this attribute uses probabilistic-union stacking (multiple sources
+     * combine via {@code 1 - Π(1-p)}); {@code false} if it uses additive soft-cap stacking
+     * (sources sum). Used by UI code to phrase tooltips appropriately.
+     */
+    boolean isProbabilistic();
 }

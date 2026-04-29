@@ -1,6 +1,5 @@
 package dev.muon.combat_attributes.attribute;
 
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 import java.util.function.Supplier;
@@ -25,7 +24,17 @@ public class DiminishingRangedAttribute extends RangedAttribute implements Dimin
     }
 
     @Override
-    public double combine(double sum, AttributeModifier.Operation operation) {
-        return spec.get().evaluate(sum, operation);
+    public double combineAll(double base, double addRaw, double mulBaseRaw, double mulTotalRaw) {
+        return spec.get().combineAll(base, addRaw, mulBaseRaw, mulTotalRaw);
+    }
+
+    @Override
+    public double softCap() {
+        return spec.get().softCap.get();
+    }
+
+    @Override
+    public boolean isProbabilistic() {
+        return spec.get().stackingMode.get() == AttributeSpec.StackingMode.PROBABILISTIC;
     }
 }

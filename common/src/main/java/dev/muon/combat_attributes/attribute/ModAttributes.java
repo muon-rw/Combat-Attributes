@@ -16,11 +16,11 @@ import java.util.function.Supplier;
  * loader-specific code iterates that list to register attributes and to attach them
  * to every living entity, populating the holder map via {@link #put}.
  *
- * <p>Whether an attribute uses vanilla or diminishing stacking is decided at registration
- * time from {@code AttributeSpec.diminishing} — exposed in the config file as a
- * per-attribute boolean. Loader code reads it from the spec and chooses the concrete
- * attribute class accordingly (vanilla {@code RangedAttribute} vs
- * {@code DiminishingRangedAttribute}).
+ * <p>How an attribute stacks is decided at registration time from
+ * {@code AttributeSpec.stackingMode} — exposed in the config file as a per-attribute enum
+ * ({@code LINEAR} / {@code SOFT_CAP} / {@code PROBABILISTIC}). Loader code reads it and
+ * chooses the concrete attribute class: vanilla {@code RangedAttribute} for {@code LINEAR},
+ * {@code DiminishingRangedAttribute} (or the percent variant on NeoForge) for the others.
  *
  * <p>All attribute reads from this mod's gameplay code should go through
  * {@link #valueOrDefault(LivingEntity, Holder)} so that a partial-registration edge case

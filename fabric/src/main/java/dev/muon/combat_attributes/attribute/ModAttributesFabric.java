@@ -28,15 +28,15 @@ import java.util.Map;
  * {@code onInitialize}, so in practice the entrypoint path always populates the
  * holder map first.
  *
- * <p>Reads {@code AttributeSpec.diminishing} per entry and registers either a
- * {@link DiminishingRangedAttribute} or vanilla {@link RangedAttribute}. Vanilla
- * stacking semantics (notably the compounding-per-modifier behavior of
- * ADD_MULTIPLIED_TOTAL) are preserved exactly when {@code diminishing=false}.
+ * <p>Reads {@code AttributeSpec.stackingMode} per entry and registers either a
+ * {@link DiminishingRangedAttribute} (any non-LINEAR mode) or vanilla {@link RangedAttribute}
+ * (LINEAR). Vanilla stacking semantics (notably the compounding-per-modifier behavior of
+ * ADD_MULTIPLIED_TOTAL) are preserved exactly when the mode is LINEAR.
  */
 public final class ModAttributesFabric {
 
     static {
-        // Configs first — attribute constructors read default/min/max/diminishing
+        // Configs first — attribute constructors read default/min/max/stackingMode
         // synchronously off the AttributeSpec. Configs.register() is idempotent.
         Configs.register();
         registerAll();
@@ -83,7 +83,7 @@ public final class ModAttributesFabric {
         for (ModAttributes.Entry entry : ModAttributes.ALL) {
             String descriptionId = "attribute." + CombatAttributes.MOD_ID + "." + entry.id();
             AttributeSpec snap = entry.spec().get();
-            Attribute attribute = snap.diminishing.get()
+            Attribute attribute = snap.stackingMode.get() != AttributeSpec.StackingMode.LINEAR
                     ? new DiminishingRangedAttribute(descriptionId, entry.spec())
                     : new RangedAttribute(descriptionId,
                             snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get());

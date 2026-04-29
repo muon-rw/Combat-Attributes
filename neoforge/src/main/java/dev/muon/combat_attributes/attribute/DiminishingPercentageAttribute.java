@@ -1,6 +1,5 @@
 package dev.muon.combat_attributes.attribute;
 
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.neoforged.neoforge.common.PercentageAttribute;
 
 import java.util.function.Supplier;
@@ -10,7 +9,7 @@ import java.util.function.Supplier;
  * stacking. Extends {@link PercentageAttribute} so NeoForge's tooltip pipeline renders
  * it as a percentage, and implements {@link DiminishingAttribute} so the common
  * {@code AttributeInstance#calculateValue} mixin routes its modifier sums through
- * the configured formulas.
+ * the configured stacking math.
  */
 public class DiminishingPercentageAttribute extends PercentageAttribute implements DiminishingAttribute {
 
@@ -26,7 +25,17 @@ public class DiminishingPercentageAttribute extends PercentageAttribute implemen
     }
 
     @Override
-    public double combine(double sum, AttributeModifier.Operation operation) {
-        return spec.get().evaluate(sum, operation);
+    public double combineAll(double base, double addRaw, double mulBaseRaw, double mulTotalRaw) {
+        return spec.get().combineAll(base, addRaw, mulBaseRaw, mulTotalRaw);
+    }
+
+    @Override
+    public double softCap() {
+        return spec.get().softCap.get();
+    }
+
+    @Override
+    public boolean isProbabilistic() {
+        return spec.get().stackingMode.get() == AttributeSpec.StackingMode.PROBABILISTIC;
     }
 }

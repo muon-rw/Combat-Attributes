@@ -23,13 +23,13 @@ import java.util.function.Supplier;
  * NeoForge-side attribute registration. Drives off {@link ModAttributes#ALL}; populates
  * the common holder map in {@link #init()} after the {@link DeferredRegister} has fired.
  *
- * <p>Picks the concrete attribute class from two flags on the {@link ModAttributes.Entry}
- * and its {@link AttributeSpec}:
+ * <p>Picks the concrete attribute class from the entry's percent flag and the spec's
+ * stacking mode (anything non-LINEAR routes through a {@link DiminishingAttribute} variant):
  * <ul>
- *   <li>percent + diminishing → {@link DiminishingPercentageAttribute}</li>
- *   <li>percent + linear      → {@link PercentageAttribute}</li>
- *   <li>flat    + diminishing → {@link DiminishingRangedAttribute}</li>
- *   <li>flat    + linear      → {@link RangedAttribute}</li>
+ *   <li>percent + non-LINEAR → {@link DiminishingPercentageAttribute}</li>
+ *   <li>percent + LINEAR     → {@link PercentageAttribute}</li>
+ *   <li>flat    + non-LINEAR → {@link DiminishingRangedAttribute}</li>
+ *   <li>flat    + LINEAR     → {@link RangedAttribute}</li>
  * </ul>
  *
  * <p>Percent variants route through NeoForge's {@code IAttributeExtension.toComponent},
@@ -51,16 +51,17 @@ public final class ModAttributesNeoforge {
             String descriptionId = "attribute." + CombatAttributes.MOD_ID + "." + entry.id();
             Supplier<Attribute> factory = () -> {
                 AttributeSpec snap = entry.spec().get();
+                boolean diminishing = snap.stackingMode.get() != AttributeSpec.StackingMode.LINEAR;
                 OptionalDouble percentScale = entry.percentScale();
                 Attribute attr;
                 if (percentScale.isPresent()) {
                     double scale = percentScale.getAsDouble();
-                    attr = snap.diminishing.get()
+                    attr = diminishing
                             ? new DiminishingPercentageAttribute(descriptionId, entry.spec(), scale)
                             : new PercentageAttribute(descriptionId,
                                     snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get(), scale);
                 } else {
-                    attr = snap.diminishing.get()
+                    attr = diminishing
                             ? new DiminishingRangedAttribute(descriptionId, entry.spec())
                             : new RangedAttribute(descriptionId,
                                     snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get());

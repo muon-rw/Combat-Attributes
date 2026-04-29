@@ -5,35 +5,35 @@ import dev.muon.combat_attributes.attribute.DiminishingAttribute;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Replaces vanilla per-operation linear summation with the attribute's diminishing formula
- * for any attribute that implements {@link DiminishingAttribute}. Vanilla attributes are
- * untouched (the {@code instanceof} check short-circuits).
+ * Routes any attribute that implements {@link DiminishingAttribute} through its
+ * {@link DiminishingAttribute#combineAll combineAll} math instead of vanilla's
+ * per-operation linear sum. Vanilla attributes (and Combat Attributes' LINEAR-mode
+ * attrs, which don't implement {@code DiminishingAttribute}) are untouched — the
+ * {@code instanceof} check short-circuits and the original return value is kept.
  *
- * <p>Vanilla {@code calculateValue} (see source for {@link AttributeInstance}):
+ * <p>Vanilla {@code calculateValue}:
  * <pre>
  *   base   = baseValue + Σ ADD_VALUE.amount
- *   result = base + Σ ADD_MULTIPLIED_BASE.amount * base
+ *   result = base + Σ ADD_MULTIPLIED_BASE.amount · base
  *   result *= Π (1 + ADD_MULTIPLIED_TOTAL.amount)
  *   return sanitizeValue(result)
  * </pre>
  *
  * <p>Replacement (when {@code instanceof DiminishingAttribute}):
  * <pre>
- *   addSum   = combine(Σ ADD_VALUE.amount,            ADD_VALUE)
- *   baseSum  = combine(Σ ADD_MULTIPLIED_BASE.amount,  ADD_MULTIPLIED_BASE)
- *   totalSum = combine(Σ ADD_MULTIPLIED_TOTAL.amount, ADD_MULTIPLIED_TOTAL)
- *   result   = (baseValue + addSum) * (1 + baseSum) * (1 + totalSum)
+ *   result = dim.combineAll(baseValue, Σ ADD_VALUE, Σ ADD_MULTIPLIED_BASE, Σ ADD_MULTIPLIED_TOTAL)
  *   return sanitizeValue(result)
  * </pre>
  *
- * <p>Vanilla applies ADD_MULTIPLIED_TOTAL multiplicatively per modifier (compounding); the
- * diminishing path collapses each operation's modifiers into a single combined factor.
- * That's intentional — the formula owns combination semantics.
+ * <p>The diminishing path collapses each operation's modifiers into a single sum before
+ * combining, which differs from vanilla's per-modifier compounding for ADD_MULTIPLIED_TOTAL.
+ * That's intentional — {@code AttributeSpec.combineAll} owns combination semantics, and
+ * per-modifier compounding would let multiple "+50%" modifiers slip past any per-operation
+ * soft cap.
  */
 @Mixin(value = AttributeInstance.class, remap = false)
 public class AttributeInstanceMixin {
@@ -53,10 +53,7 @@ public class AttributeInstanceMixin {
             }
         }
 
-        double base = self.getBaseValue();
-        double result = (base + dim.combine(addRaw, Operation.ADD_VALUE))
-                * (1.0 + dim.combine(baseRaw, Operation.ADD_MULTIPLIED_BASE))
-                * (1.0 + dim.combine(totalRaw, Operation.ADD_MULTIPLIED_TOTAL));
+        double result = dim.combineAll(self.getBaseValue(), addRaw, baseRaw, totalRaw);
         return attr.sanitizeValue(result);
     }
 }
