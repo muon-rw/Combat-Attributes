@@ -37,10 +37,7 @@ public abstract class LivingEntityMixin {
      * draw_speed inverts the sign to slow the use timer down — preserved from the reference
      * impl in case a server config or modifier dips below zero.
      *
-     * <p>Bow/crossbow-specific power and charge-duration mixins are intentionally absent —
-     * this mixin replaces them. Layering a release-time {@code timeHeld} multiplier or a
-     * {@code getChargeDuration} divisor on top of the accelerated tick decrement double-applies
-     * the bonus.
+     * <p>Could theoretically be extended to more items.</p>
      */
     @Inject(method = "updateUsingItem", at = @At("HEAD"))
     private void combat_attributes$applyDrawSpeed(ItemStack useItem, CallbackInfo ci) {
@@ -77,7 +74,7 @@ public abstract class LivingEntityMixin {
     }
 
     /**
-     * Drives Combat Attributes' damage pipeline by wrapping {@code LivingEntity#hurtServer}:
+     * Attribute hooks:
      * <ol>
      *   <li>Evasion — if the victim dodges, skip the original method entirely (returns
      *       {@code false}; vanilla treats this as no damage applied).</li>
@@ -86,11 +83,6 @@ public abstract class LivingEntityMixin {
      *   <li>Lifesteal — if vanilla returned {@code true} (damage applied) AND the attacker is
      *       within their {@code entity_interaction_range} of the victim, heal the attacker.</li>
      * </ol>
-     *
-     * <p>{@code @WrapMethod} is the right tool here — we need to optionally skip the original
-     * call (for evasion), modify args, and post-process the return value. {@code @ModifyVariable}
-     * can't cancel and {@code @Inject} can't both modify the {@code damage} arg and conditionally
-     * cancel from one handler.
      */
     @WrapMethod(method = "hurtServer")
     private boolean combat_attributes$wrapHurt(ServerLevel level, DamageSource source, float damage,

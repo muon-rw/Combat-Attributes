@@ -10,10 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
  * Suppresses vanilla's jump-crit damage bonus when {@code Configs.SYNC.disableVanillaJumpCrits}
  * is true. Targets {@code Player#canCriticalAttack} (the private predicate vanilla checks
  * before applying its hardcoded ×1.5 multiplier in {@code Player#attack}).
- *
- * <p>When the toggle is off (default), this is a no-op — vanilla's check stands. When on,
- * we force {@code false} so the {@code baseDamage *= 1.5F} branch is skipped and only this
- * mod's Melee Crit attribute applies on attack.
  */
 @Mixin(value = Player.class, remap = false)
 public class PlayerJumpCritMixin {

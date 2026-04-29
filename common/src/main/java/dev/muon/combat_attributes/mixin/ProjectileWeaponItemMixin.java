@@ -23,10 +23,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * <p>Accuracy scaling: {@code uncertainty *= max(0, 1 - accuracy)} — perfect accuracy
  * (1.0) zeroes out spread; intermediate values reduce it proportionally.
  *
- * <p>Shooter is captured via MixinExtras' {@code @Local(argsOnly = true)} for consistency
- * with the other projectile-related mixins. Positional trailing-arg capture also works
- * with current sponge-mixin versions on both loaders, but {@code @Local} is the more
- * declarative and version-robust pattern.
  */
 @Mixin(value = ProjectileWeaponItem.class, remap = false)
 public class ProjectileWeaponItemMixin {

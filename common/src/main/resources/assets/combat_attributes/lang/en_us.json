@@ -21,6 +21,6 @@
   "attribute.combat_attributes.draw_speed.desc": "Speeds up bow draw time and crossbow charge time.",
   "attribute.combat_attributes.arrow_velocity": "Arrow Velocity",
   "attribute.combat_attributes.arrow_velocity.desc": "Increases the launch speed of arrows fired from bows and crossbows.",
-  "attribute.combat_attributes.accuracy": "Accuracy",
+  "attribute.combat_attributes.accuracy": "Projectile Accuracy",
   "attribute.combat_attributes.accuracy.desc": "Reduces spread of fired arrows; at maximum, removes all inaccuracy."
 }
