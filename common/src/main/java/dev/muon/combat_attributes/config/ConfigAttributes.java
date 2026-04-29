@@ -4,36 +4,66 @@ import dev.muon.combat_attributes.CombatAttributes;
 import dev.muon.combat_attributes.attribute.AttributeSpec;
 import dev.muon.combat_attributes.attribute.AttributeSpec.StackingMode;
 import me.fzzyhmstrs.fzzy_config.annotations.Comment;
+import me.fzzyhmstrs.fzzy_config.annotations.TomlHeaderComment;
+import me.fzzyhmstrs.fzzy_config.annotations.Version;
 import me.fzzyhmstrs.fzzy_config.config.Config;
 import net.minecraft.resources.Identifier;
 
 /**
- * Server-authoritative configuration for every Combat Attributes attribute.
- *
- * <p>One section per attribute, each holding {@code default} / {@code min} / {@code max},
- * a {@code stackingMode} ({@link StackingMode#LINEAR}, {@link StackingMode#SOFT_CAP},
- * {@link StackingMode#PROBABILISTIC}), and the soft-cap parameters {@code softCap} (M)
- * and {@code halfSaturation} (k). Loaded as
+ * Server-authoritative configuration for every Combat Attributes attribute. Loaded as
  * {@link me.fzzyhmstrs.fzzy_config.api.RegisterType#BOTH} so client and server stay in sync.
+ * Per-attribute fields: {@code default} / {@code min} / {@code max}, a {@code stackingMode}
+ * ({@link StackingMode#LINEAR} / {@link StackingMode#SOFT_CAP} / {@link StackingMode#PROBABILISTIC}),
+ * and soft-cap parameters {@code softCap} (M) and {@code halfSaturation} (k).
  *
- * <p>Calibration intent for this default pass:
- * <ul>
- *   <li><b>Crit chance</b> caps at 40% per source (M=0.4) and reaches ~36% at modifier
- *       sum x=0.5 — i.e. 50 stat points at 0.01/pt from Chronicles. Two independent
- *       40% sources combine via probabilistic union to ~64% (1 − 0.6²).</li>
- *   <li><b>Evasion</b> caps lower at 30% per source (M=0.3) so two maxed sources still
- *       leave the player exposed (~51%). Same shape, same k.</li>
- *   <li><b>Crit damage</b> keeps the existing M=5 / k=2 shape — additive on top of the
- *       1.5 base, so 6.5× max from a single source, ~16.5× across all three operation
- *       slots (rare to see in practice).</li>
- *   <li><b>Accuracy</b> is probabilistic but with M=1.0 and a slow k=2.0 — full
- *       accuracy is reachable but expensive.</li>
- *   <li><b>ranged_damage</b>, <b>lifesteal</b>, <b>draw_speed</b>, <b>arrow_velocity</b>
- *       are LINEAR (no soft cap; vanilla stacking).</li>
- * </ul>
+ * <p>The end-user-facing explanation of M, k, and how operation slots combine lives in the
+ * {@link TomlHeaderComment} annotations below — they're rendered into the generated TOML so
+ * pack authors can read them inline while editing.
  *
  * <p>File: <code>config/combat_attributes/combat_attributes-attributes.toml</code>
  */
+@TomlHeaderComment(text = "===== Combat Attributes =====")
+@TomlHeaderComment(text = "Per-attribute config: default value, bounds, stacking mode, and soft-cap shape.")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "--- Stacking modes ---")
+@TomlHeaderComment(text = "LINEAR        : vanilla math; M and k are inert.")
+@TomlHeaderComment(text = "SOFT_CAP      : each operation slot diminishes additively. base + slot1 + slot2 + slot3.")
+@TomlHeaderComment(text = "                Use for additive bonuses like crit damage.")
+@TomlHeaderComment(text = "PROBABILISTIC : each operation slot diminishes, then slots combine via probabilistic")
+@TomlHeaderComment(text = "                union: 1 - (1-base)(1-slot1)(1-slot2)(1-slot3). Two 40% sources -> 64%,")
+@TomlHeaderComment(text = "                three -> 78.4%, asymptote 100%. Use for chance attributes.")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "Each modifier operation (ADD_VALUE / ADD_MULTIPLIED_BASE / ADD_MULTIPLIED_TOTAL) is")
+@TomlHeaderComment(text = "treated as one independent 'source' whose modifier amounts sum, then diminish to that")
+@TomlHeaderComment(text = "slot's per-source cap. Addons cannot bypass the cap by using a different operation.")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "--- Tuning M (softCap) and k (halfSaturation) ---")
+@TomlHeaderComment(text = "Non-linear modes apply: min(x, M*x/(x+k))")
+@TomlHeaderComment(text = "  M = the ceiling. The most a single source can ever contribute. For chance attributes")
+@TomlHeaderComment(text = "      this is the per-source probability cap (e.g. 0.4 = 40%). For multiplier attributes")
+@TomlHeaderComment(text = "      like crit damage, the cap is added on top of the base value (M=5 above base=1.5 ->")
+@TomlHeaderComment(text = "      max 6.5x from a single source).")
+@TomlHeaderComment(text = "  k = the softness of that ceiling. Modifiers below (M - k) pass through linearly. Above")
+@TomlHeaderComment(text = "      that, the curve takes over and asymptotes to M. Small k = nearly hard cap with a")
+@TomlHeaderComment(text = "      tiny soft buffer. Large k = early diminishing with a long tail toward M.")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "Quick intuition with M = 0.4 (40% cap):")
+@TomlHeaderComment(text = "  k = 0.001 -> linear up to 39.9%, then a sliver of curve to 40%. Practically hard cap.")
+@TomlHeaderComment(text = "  k = 0.05  -> linear up to 35%, then 5%-wide curve to 40%. (current crit chance)")
+@TomlHeaderComment(text = "  k = 0.2   -> linear up to 20%, then a long, gentle climb from 20% toward 40%.")
+@TomlHeaderComment(text = "  k >= M    -> no linear region; the curve diminishes from the very first modifier.")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "Rule of thumb: pick k by deciding what fraction of M should be reachable linearly.")
+@TomlHeaderComment(text = "  90% of M reachable linearly -> k = M * 0.1")
+@TomlHeaderComment(text = "  70% of M reachable linearly -> k = M * 0.3")
+@TomlHeaderComment(text = "")
+@TomlHeaderComment(text = "--- Default calibration ---")
+@TomlHeaderComment(text = "Crit chance   : M=0.4, k=0.05. ~36% at 50 stat points (0.01/pt). Two sources -> 64%.")
+@TomlHeaderComment(text = "Evasion       : M=0.3, k=0.05. Lower cap; two maxed sources still leave ~51% exposed.")
+@TomlHeaderComment(text = "Crit damage   : M=5,   k=2.   Additive above the 1.5 base. 6.5x max from one source.")
+@TomlHeaderComment(text = "Accuracy      : M=1.0, k=2.0. Full accuracy reachable but expensive (no linear region).")
+@TomlHeaderComment(text = "Ranged damage, lifesteal, draw speed, arrow velocity: LINEAR (vanilla stacking).")
+@Version(version = 1)
 public class ConfigAttributes extends Config {
 
     public ConfigAttributes() {
@@ -42,35 +72,35 @@ public class ConfigAttributes extends Config {
 
     // --- Melee ---
 
-    @Comment("Probability (0–1) of a melee critical strike on attack. PROBABILISTIC stacking — caps at 40% per source; multiple sources combine via probabilistic union.")
-    public AttributeSpec meleeCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.4, 0.05);
+    @Comment("Probability (0–1) of a melee critical strike on attack. PROBABILISTIC stacking — caps at 50% per source; multiple sources combine via probabilistic union.")
+    public AttributeSpec meleeCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.5, 0.15);
 
     @Comment("Damage multiplier applied to melee critical strikes. Default 1.5 (matches vanilla jump-crit). SOFT_CAP — each operation adds up to +5 above base, asymptote ~6.5× from a single source.")
-    public AttributeSpec meleeCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 5.0, 2.0);
+    public AttributeSpec meleeCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 1, 0.4);
 
     // --- Ranged ---
 
     @Comment("Flat damage bonus added to non-magic projectile damage sources (excludes #c:is_magic). LINEAR — vanilla stacking.")
     public AttributeSpec rangedDamage = new AttributeSpec(0.0, -100.0, 1000.0, StackingMode.LINEAR, 0.0, 1.0);
 
-    @Comment("Probability (0–1) of a ranged (projectile) critical strike. Separate roll from melee/magic. PROBABILISTIC — 40% per-source cap.")
-    public AttributeSpec rangedCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.4, 0.05);
+    @Comment("Probability (0–1) of a ranged (projectile) critical strike. Separate roll from melee/magic. PROBABILISTIC — 50% per-source cap.")
+    public AttributeSpec rangedCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.5, 0.15);
 
     @Comment("Damage multiplier applied to ranged critical strikes. Default 1.5. SOFT_CAP — same shape as melee crit damage.")
-    public AttributeSpec rangedCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 5.0, 2.0);
+    public AttributeSpec rangedCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 1.0, 0.4);
 
     // --- Magic ---
 
-    @Comment("Probability (0–1) of a magic critical strike on damage tagged #c:is_magic. Separate roll. PROBABILISTIC — 40% per-source cap.")
-    public AttributeSpec magicCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.4, 0.05);
+    @Comment("Probability (0–1) of a magic critical strike on damage tagged #c:is_magic. Separate roll. PROBABILISTIC — 50% per-source cap.")
+    public AttributeSpec magicCritChance = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.5, 0.15);
 
     @Comment("Damage multiplier applied to magic critical strikes. Default 1.5. SOFT_CAP — same shape as melee crit damage.")
-    public AttributeSpec magicCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 5.0, 2.0);
+    public AttributeSpec magicCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 1.0, 0.4);
 
     // --- Defensive ---
 
     @Comment("Probability (0–1) of dodging incoming damage of any source. PROBABILISTIC — capped at 30% per source, lower than crit chance so two maxed sources still leave the player ~50% exposed.")
-    public AttributeSpec evasion = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.3, 0.05);
+    public AttributeSpec evasion = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 0.3, 0.15);
 
     @Comment("Fraction of damage dealt that heals the attacker. Applies only when the attacker is within their entity_interaction_range of the victim. LINEAR — vanilla stacking.")
     public AttributeSpec lifesteal = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.LINEAR, 0.0, 1.0);
