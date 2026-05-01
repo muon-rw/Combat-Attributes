@@ -35,6 +35,14 @@ import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
  *       each diminished. Each operation contributes a probability up to {@code M};
  *       multiple sources combine via probabilistic union (two 40% sources → 64%, three
  *       → 78.4%, asymptote 100%). Use for chance-style attributes (crit, dodge, etc.).</li>
+ *   <li>{@link StackingMode#MULTIPLICATIVE}: {@code base · (1-r_add)·(1-r_mulBase)·(1-r_mulTotal)}
+ *       for the buff direction (negative modifier sums), with each {@code r_i} being the
+ *       diminished reduction. Increases (positive sums) pass through linearly as factor
+ *       {@code (1 + sum)}. The buff sign is flipped vs. the other diminishing modes —
+ *       reductions are the soft-capped path here, since this mode targets multipliers
+ *       like mana cost where lower is better. Per-slot cap is {@code M} (max reduction
+ *       fraction); stacks via {@code 1 - Π(1-r_i)} on the reduction, equivalent to
+ *       multiplicative stacking on the cost factor (two 30% sources → 51% reduction).</li>
  * </ul>
  *
  * <p>Diminishing applies to all three modifier operations the same way — there is no
@@ -99,6 +107,12 @@ public class AttributeSpec extends ConfigSection {
             // therefore skip the mixin path), but kept here as a sane fallback.
             return base + addRaw + mulBaseRaw * base + mulTotalRaw * (base + addRaw);
         }
+        if (mode == StackingMode.MULTIPLICATIVE) {
+            return base
+                    * multiplicativeFactor(addRaw)
+                    * multiplicativeFactor(mulBaseRaw)
+                    * multiplicativeFactor(mulTotalRaw);
+        }
         double a = diminishOp(addRaw);
         double b = diminishOp(mulBaseRaw);
         double c = diminishOp(mulTotalRaw);
@@ -111,7 +125,8 @@ public class AttributeSpec extends ConfigSection {
                 double cp = clamp01(c);
                 yield 1.0 - (1.0 - bp) * (1.0 - ap) * (1.0 - bbp) * (1.0 - cp);
             }
-            case LINEAR -> base + addRaw + mulBaseRaw * base + mulTotalRaw * (base + addRaw);
+            // LINEAR and MULTIPLICATIVE are short-circuited above; reaching them here means a new mode was added without a case.
+            case LINEAR, MULTIPLICATIVE -> throw new IllegalStateException("Unreachable: " + mode);
         };
     }
 
@@ -119,11 +134,21 @@ public class AttributeSpec extends ConfigSection {
         // Negative sums (debuffs) bypass the soft cap and pass through linearly so they actually subtract.
         // Otherwise M*x/(x+k) would soften them and, near x = -k, blow up.
         if (sum <= 0.0) return sum;
-        double m = softCap.get();
-        double k = halfSaturation.get();
+        return softCapped(sum);
+    }
+
+    /** Inverse-sign analog of {@link #diminishOp} for {@link StackingMode#MULTIPLICATIVE}: reductions diminish, increases pass through linearly. */
+    private double multiplicativeFactor(double sum) {
+        if (sum >= 0.0) return 1.0 + sum;
+        return 1.0 - softCapped(-sum);
+    }
+
+    private double softCapped(double r) {
         // min() guarantees diminishing never amplifies — the linear ramp x dominates until it
         // crosses M*x/(x+k) at x = M - k, after which the diminishing curve takes over.
-        return Math.min(sum, m * sum / (sum + k));
+        double m = softCap.get();
+        double k = halfSaturation.get();
+        return Math.min(r, m * r / (r + k));
     }
 
     private static double clamp01(double v) {
@@ -140,6 +165,7 @@ public class AttributeSpec extends ConfigSection {
     public enum StackingMode {
         LINEAR,
         SOFT_CAP,
-        PROBABILISTIC
+        PROBABILISTIC,
+        MULTIPLICATIVE
     }
 }

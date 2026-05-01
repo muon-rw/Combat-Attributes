@@ -7,6 +7,8 @@
   "mixins": [
     "AttributeInstanceMixin",
     "ExperienceOrbMixin",
+    "FoodDataMixin",
+    "FoodPropertiesMixin",
     "LivingEntityMixin",
     "PlayerJumpCritMixin",
     "ProjectileShootHelperMixin",

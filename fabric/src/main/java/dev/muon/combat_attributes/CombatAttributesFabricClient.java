@@ -1,9 +1,11 @@
 package dev.muon.combat_attributes;
 
 import dev.muon.combat_attributes.client.HudBarsFabric;
+import dev.muon.combat_attributes.compat.AppleSkinHeartTooltip;
+import dev.muon.combat_attributes.compat.AppleSkinIntegrationFabric;
 import dev.muon.combat_attributes.compat.DynamicTooltipsIntegration;
+import dev.muon.combat_attributes.platform.Services;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * Client-only entrypoint. Hosts integrations that touch client-only mods (currently
@@ -25,8 +27,11 @@ public class CombatAttributesFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        if (FabricLoader.getInstance().isModLoaded("dynamictooltips")) {
+        if (Services.PLATFORM.isModLoaded("dynamictooltips")) {
             DynamicTooltipsIntegration.init();
+        }
+        if (Services.PLATFORM.isModLoaded(AppleSkinHeartTooltip.MOD_ID)) {
+            AppleSkinIntegrationFabric.init();
         }
         HudBarsFabric.initClient();
     }

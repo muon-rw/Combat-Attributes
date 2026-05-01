@@ -67,6 +67,7 @@ public final class ModAttributesNeoforge {
                                     snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get());
                 }
                 attr.setSyncable(true);
+                attr.setSentiment(entry.sentiment());
                 return attr;
             };
             HOLDERS.add(REGISTRY.register(entry.id(), factory));

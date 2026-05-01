@@ -42,9 +42,9 @@ public final class HudBars {
     public static final Identifier MANA_EMPTY_SPRITE = Identifier.fromNamespaceAndPath(CombatAttributes.MOD_ID, "hud/mana_empty");
 
     public static final int BAR_HEIGHT = 10;
+    public static final int SPRITE_SIZE = 9;
+    public static final int PIP_STRIDE = 8;
     private static final int PIPS = 10;
-    private static final int SPRITE_SIZE = 9;
-    private static final int PIP_STRIDE = 8;
 
     private HudBars() {}
 

@@ -35,7 +35,7 @@ public class DiminishingPercentageAttribute extends PercentageAttribute implemen
     }
 
     @Override
-    public boolean isProbabilistic() {
-        return spec.get().stackingMode.get() == AttributeSpec.StackingMode.PROBABILISTIC;
+    public AttributeSpec.StackingMode stackingMode() {
+        return spec.get().stackingMode.get();
     }
 }

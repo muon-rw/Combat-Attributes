@@ -32,6 +32,11 @@ import net.minecraft.resources.Identifier;
 @TomlHeaderComment(text = "PROBABILISTIC : each operation slot diminishes, then slots combine via probabilistic")
 @TomlHeaderComment(text = "                union: 1 - (1-base)(1-slot1)(1-slot2)(1-slot3). Two 40% sources -> 64%,")
 @TomlHeaderComment(text = "                three -> 78.4%, asymptote 100%. Use for chance attributes.")
+@TomlHeaderComment(text = "MULTIPLICATIVE: inverse-sign analog — REDUCTIONS (negative modifier sums) diminish per")
+@TomlHeaderComment(text = "                slot, then slots combine multiplicatively as cost factors:")
+@TomlHeaderComment(text = "                base * (1-r1) * (1-r2) * (1-r3). Two 30% reductions -> 51% off.")
+@TomlHeaderComment(text = "                Increases (positive sums) pass through linearly as (1+x). Use for")
+@TomlHeaderComment(text = "                'lower is better' multipliers like mana cost.")
 @TomlHeaderComment(text = "")
 @TomlHeaderComment(text = "Each modifier operation (ADD_VALUE / ADD_MULTIPLIED_BASE / ADD_MULTIPLIED_TOTAL) is")
 @TomlHeaderComment(text = "treated as one independent 'source' whose modifier amounts sum, then diminish to that")
@@ -130,8 +135,8 @@ public class ConfigAttributes extends Config {
     @Comment("Stamina regenerated per second (split across 20 ticks). Player-only. LINEAR — vanilla stacking.")
     public AttributeSpec staminaRegen = new AttributeSpec(1.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
 
-    @Comment("Multiplier on stamina costs paid by abilities — 1.0 = full cost, 0.5 = half cost. Other mods are expected to consume current stamina via this multiplier. Percent display. Player-only. LINEAR — vanilla stacking.")
-    public AttributeSpec staminaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
+    @Comment("Multiplier on stamina costs paid by abilities — 1.0 = full cost, 0.5 = half cost, 0.0 = free. Other mods are expected to consume current stamina via this multiplier. Percent display, NEGATIVE sentiment (lower is better). Player-only. MULTIPLICATIVE stacking — reductions diminish per slot at a 30% cap, then combine multiplicatively (two 30% reductions → 51% off), mirroring evasion's shape on the buff side.")
+    public AttributeSpec staminaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.MULTIPLICATIVE, 0.3, 0.15);
 
     @Comment("Maximum mana pool. The HUD bar always shows 10 pips, scaled to this value. Player-only. LINEAR — vanilla stacking.")
     public AttributeSpec maxMana = new AttributeSpec(20.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
@@ -139,8 +144,8 @@ public class ConfigAttributes extends Config {
     @Comment("Mana regenerated per second (split across 20 ticks). Player-only. LINEAR — vanilla stacking.")
     public AttributeSpec manaRegen = new AttributeSpec(1.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
 
-    @Comment("Multiplier on mana costs paid by abilities — 1.0 = full cost, 0.5 = half cost. Other mods are expected to consume current mana via this multiplier. Percent display. Player-only. LINEAR — vanilla stacking.")
-    public AttributeSpec manaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
+    @Comment("Multiplier on mana costs paid by abilities — 1.0 = full cost, 0.5 = half cost, 0.0 = free. Other mods are expected to consume current mana via this multiplier. Percent display, NEGATIVE sentiment (lower is better). Player-only. MULTIPLICATIVE stacking — reductions diminish per slot at a 30% cap, then combine multiplicatively (two 30% reductions → 51% off), mirroring evasion's shape on the buff side.")
+    public AttributeSpec manaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.MULTIPLICATIVE, 0.3, 0.15);
 
     // --- Player progression ---
 

@@ -4,8 +4,11 @@
   "package": "dev.muon.combat_attributes.mixin",
   "plugin": "dev.muon.combat_attributes.MixinConfigPluginNeoforge",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "compat.appleskin.FoodHelperMixin"
+  ],
   "client": [
+    "compat.appleskin.FoodTooltipRendererMixin"
   ],
   "server": [],
   "injectors": {

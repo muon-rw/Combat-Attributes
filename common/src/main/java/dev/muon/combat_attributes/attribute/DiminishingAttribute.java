@@ -2,7 +2,7 @@ package dev.muon.combat_attributes.attribute;
 
 /**
  * Marker interface for attributes whose modifiers combine via {@link AttributeSpec#combineAll}
- * (soft cap / probabilistic union) rather than vanilla's per-operation linear sum.
+ * (soft-cap / probabilistic-union / multiplicative) rather than vanilla's per-operation linear sum.
  *
  * <p>Concrete classes typically extend either vanilla {@code RangedAttribute} (Fabric)
  * or NeoForge's {@code PercentageAttribute} (NeoForge) and implement this. The common
@@ -30,16 +30,33 @@ public interface DiminishingAttribute {
 
     /**
      * Per-operation asymptote — the most any single operation slot can contribute,
-     * a.k.a. the "M" in {@code M*x/(x+k)}. For PROBABILISTIC stacking this is the
-     * per-source probability cap; for SOFT_CAP it's the maximum additive bonus.
-     * Exposed for UI use (tooltips that show players the soft-cap value).
+     * a.k.a. the "M" in {@code M*x/(x+k)}. For PROBABILISTIC this is the per-source
+     * probability cap; for SOFT_CAP it's the maximum additive bonus; for MULTIPLICATIVE
+     * it's the maximum reduction fraction. Exposed for UI use (tooltips that show
+     * players the soft-cap value).
      */
     double softCap();
 
     /**
-     * {@code true} if this attribute uses probabilistic-union stacking (multiple sources
-     * combine via {@code 1 - Π(1-p)}); {@code false} if it uses additive soft-cap stacking
-     * (sources sum). Used by UI code to phrase tooltips appropriately.
+     * The configured stacking mode. Single source of truth — the boolean helpers below
+     * delegate to this. Downstream UI / tooltip code can switch on the enum directly.
      */
-    boolean isProbabilistic();
+    AttributeSpec.StackingMode stackingMode();
+
+    /**
+     * {@code true} if this attribute uses probabilistic-union stacking (multiple sources
+     * combine via {@code 1 - Π(1-p)}). Convenience wrapper over {@link #stackingMode()}.
+     */
+    default boolean isProbabilistic() {
+        return stackingMode() == AttributeSpec.StackingMode.PROBABILISTIC;
+    }
+
+    /**
+     * {@code true} if this attribute uses multiplicative stacking on cost factors —
+     * lower-is-better multipliers like mana cost. Reductions diminish per slot, then
+     * combine via {@code base · Π(1 - r_i)}; increases pass through linearly.
+     */
+    default boolean isMultiplicative() {
+        return stackingMode() == AttributeSpec.StackingMode.MULTIPLICATIVE;
+    }
 }

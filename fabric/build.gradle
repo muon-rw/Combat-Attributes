@@ -21,6 +21,9 @@ dependencies {
     implementation "dev.muon:dynamic-tooltips:${dynamic_tooltips_version}+${minecraft_version}"
     implementation "dev.muon.dynamic_difficulty:dynamic_difficulty-fabric:${dynamic_difficulty_version}+${minecraft_version}"
 
+    // Compats
+    compileOnly "curse.maven:appleskin-248787:7854450"
+    localRuntime "curse.maven:appleskin-248787:7854450"
 }
 
 loom {

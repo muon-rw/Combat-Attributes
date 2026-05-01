@@ -1,8 +1,8 @@
 package dev.muon.combat_attributes.client;
 
 import dev.muon.combat_attributes.CombatAttributes;
+import dev.muon.combat_attributes.feature.LegacyHunger;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -31,14 +31,18 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 @EventBusSubscriber(modid = CombatAttributes.MOD_ID, value = Dist.CLIENT)
 public final class HudBarsNeoforge {
 
-    private static final Identifier STAMINA = HudBars.STAMINA_ELEMENT;
-    private static final Identifier MANA    = HudBars.MANA_ELEMENT;
-
     private HudBarsNeoforge() {}
 
     @SubscribeEvent
     public static void register(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.FOOD_LEVEL, STAMINA, (graphics, deltaTracker) -> {
+        // Suppress the vanilla hunger row when legacy-hunger is on. Skipping the layer also skips
+        // the +10 bump to Gui.rightHeight that vanilla applies inside the food render, so our
+        // stamina layer below reads rightHeight=39 and slots into the food row's y.
+        event.wrapLayer(VanillaGuiLayers.FOOD_LEVEL, vanilla -> (graphics, deltaTracker) -> {
+            if (LegacyHunger.isEnabled()) return;
+            vanilla.render(graphics, deltaTracker);
+        });
+        event.registerAbove(VanillaGuiLayers.FOOD_LEVEL, HudBars.STAMINA_ELEMENT, (graphics, deltaTracker) -> {
             Minecraft mc = Minecraft.getInstance();
             Player player = mc.player;
             if (player == null) return;
@@ -47,7 +51,7 @@ public final class HudBarsNeoforge {
             HudBars.renderStamina(graphics, player, yLineBase);
             mc.gui.rightHeight += HudBars.BAR_HEIGHT;
         });
-        event.registerAbove(STAMINA, MANA, (graphics, deltaTracker) -> {
+        event.registerAbove(HudBars.STAMINA_ELEMENT, HudBars.MANA_ELEMENT, (graphics, deltaTracker) -> {
             Minecraft mc = Minecraft.getInstance();
             Player player = mc.player;
             if (player == null) return;

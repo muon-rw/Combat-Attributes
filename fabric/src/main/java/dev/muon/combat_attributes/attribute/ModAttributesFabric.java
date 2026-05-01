@@ -96,6 +96,7 @@ public final class ModAttributesFabric {
                     : new RangedAttribute(descriptionId,
                             snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get());
             attribute.setSyncable(true);
+            attribute.setSentiment(entry.sentiment());
             Holder<Attribute> holder = Registry.registerForHolder(
                     BuiltInRegistries.ATTRIBUTE,
                     Identifier.fromNamespaceAndPath(CombatAttributes.MOD_ID, entry.id()),

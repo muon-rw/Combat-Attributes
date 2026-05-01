@@ -33,6 +33,9 @@ dependencies {
     // Dynamic Difficulty
     implementation "dev.muon.dynamic_difficulty:dynamic_difficulty-common:${dynamic_difficulty_version}+${minecraft_version}"
 
+    // Compats — compileOnly so common can target AppleSkin types in mixins. Pick the Fabric jar
+    // arbitrarily; FoodHelper / ConsumableFood signatures match across both loader variants.
+    compileOnly "curse.maven:appleskin-248787:7854450"
 }
 
 configurations {

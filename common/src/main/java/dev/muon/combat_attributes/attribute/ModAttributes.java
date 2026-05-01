@@ -4,6 +4,7 @@ import dev.muon.combat_attributes.config.Configs;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attribute.Sentiment;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,18 +47,23 @@ public final class ModAttributes {
      * <p>{@code playerOnly} entries are skipped when building/augmenting attribute
      * suppliers for non-player entity types.
      */
-    public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale, boolean playerOnly) {
+    public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale,
+                        boolean playerOnly, Sentiment sentiment) {
         public static Entry percent(String id, Supplier<AttributeSpec> spec, double scale) {
-            return new Entry(id, spec, OptionalDouble.of(scale), false);
+            return new Entry(id, spec, OptionalDouble.of(scale), false, Sentiment.POSITIVE);
         }
         public static Entry flat(String id, Supplier<AttributeSpec> spec) {
-            return new Entry(id, spec, OptionalDouble.empty(), false);
+            return new Entry(id, spec, OptionalDouble.empty(), false, Sentiment.POSITIVE);
         }
         public static Entry playerFlat(String id, Supplier<AttributeSpec> spec) {
-            return new Entry(id, spec, OptionalDouble.empty(), true);
+            return new Entry(id, spec, OptionalDouble.empty(), true, Sentiment.POSITIVE);
         }
         public static Entry playerPercent(String id, Supplier<AttributeSpec> spec, double scale) {
-            return new Entry(id, spec, OptionalDouble.of(scale), true);
+            return new Entry(id, spec, OptionalDouble.of(scale), true, Sentiment.POSITIVE);
+        }
+        /** Percent entry where lower values are the buff (e.g. {@code mana_cost}); flips tooltip colour via {@link Attribute.Sentiment#NEGATIVE}. */
+        public static Entry playerPercentNegative(String id, Supplier<AttributeSpec> spec, double scale) {
+            return new Entry(id, spec, OptionalDouble.of(scale), true, Sentiment.NEGATIVE);
         }
     }
 
@@ -84,10 +90,10 @@ public final class ModAttributes {
             // Player resources
             Entry.playerFlat   ("max_stamina",    () -> Configs.ATTRIBUTES.maxStamina),
             Entry.playerFlat   ("stamina_regen",  () -> Configs.ATTRIBUTES.staminaRegen),
-            Entry.playerPercent("stamina_cost",   () -> Configs.ATTRIBUTES.staminaCost,    100.0),
+            Entry.playerPercentNegative("stamina_cost", () -> Configs.ATTRIBUTES.staminaCost, 100.0),
             Entry.playerFlat   ("max_mana",       () -> Configs.ATTRIBUTES.maxMana),
             Entry.playerFlat   ("mana_regen",     () -> Configs.ATTRIBUTES.manaRegen),
-            Entry.playerPercent("mana_cost",      () -> Configs.ATTRIBUTES.manaCost,       100.0),
+            Entry.playerPercentNegative("mana_cost", () -> Configs.ATTRIBUTES.manaCost,    100.0),
             // Player progression
             Entry.playerPercent("experience_gain",() -> Configs.ATTRIBUTES.experienceGain, 100.0)
     );
