@@ -82,8 +82,10 @@ public final class ModAttributesNeoforge {
     @SubscribeEvent
     public static void attachToLivingEntities(EntityAttributeModificationEvent event) {
         for (EntityType<? extends LivingEntity> type : event.getTypes()) {
-            for (DeferredHolder<Attribute, Attribute> holder : HOLDERS) {
-                event.add(type, holder);
+            boolean isPlayer = type == EntityType.PLAYER;
+            for (ModAttributes.Entry entry : ModAttributes.ALL) {
+                if (entry.playerOnly() && !isPlayer) continue;
+                event.add(type, ModAttributes.get(entry.id()));
             }
         }
     }

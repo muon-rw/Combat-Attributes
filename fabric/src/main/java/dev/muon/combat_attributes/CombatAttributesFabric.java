@@ -1,6 +1,8 @@
 package dev.muon.combat_attributes;
 
 import dev.muon.combat_attributes.attribute.ModAttributesFabric;
+import dev.muon.combat_attributes.resource.PlayerResourceAttachmentFabric;
+import dev.muon.combat_attributes.resource.PlayerResourceEventsFabric;
 import net.fabricmc.api.ModInitializer;
 
 public class CombatAttributesFabric implements ModInitializer {
@@ -13,5 +15,8 @@ public class CombatAttributesFabric implements ModInitializer {
         // forces <clinit>, as a defensive trampoline — idempotent because the JVM
         // runs <clinit> once.
         ModAttributesFabric.ensureInitialized();
+
+        PlayerResourceAttachmentFabric.init();
+        PlayerResourceEventsFabric.init();
     }
 }

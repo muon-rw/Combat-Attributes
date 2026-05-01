@@ -1,5 +1,7 @@
 package dev.muon.combat_attributes.platform.services;
 
+import dev.muon.combat_attributes.resource.PlayerResourceStore;
+
 public interface IPlatformHelper {
 
     /**
@@ -33,4 +35,10 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+    /**
+     * Loader-specific accessor for the player's stamina/mana attachment.
+     * Both loaders back this with an auto-syncing, persistent attachment.
+     */
+    PlayerResourceStore getPlayerResourceStore();
 }

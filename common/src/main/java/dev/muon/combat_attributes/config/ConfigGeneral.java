@@ -25,4 +25,10 @@ public class ConfigGeneral extends Config {
     @Comment("If true, vanilla's jump-crit damage bonus is suppressed so it doesn't stack with this mod's Melee Crit attribute. " +
             "Leave false to keep both systems active (note: damage may double-crit when a jump-crit and a Melee Crit roll line up).")
     public ValidatedBoolean disableVanillaJumpCrits = new ValidatedBoolean(true);
+
+    @Comment("If true, the stamina HUD bar is hidden while at full stamina. The oxygen bar above shifts down to fill the gap.")
+    public ValidatedBoolean hideStaminaWhenFull = new ValidatedBoolean(true);
+
+    @Comment("If true, the mana HUD bar is hidden while at full mana. The oxygen bar above shifts down to fill the gap.")
+    public ValidatedBoolean hideManaWhenFull = new ValidatedBoolean(true);
 }

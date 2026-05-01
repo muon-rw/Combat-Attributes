@@ -1,6 +1,7 @@
 package dev.muon.combat_attributes;
 
 import dev.muon.combat_attributes.attribute.ModAttributesNeoforge;
+import dev.muon.combat_attributes.resource.PlayerResourceAttachmentNeoforge;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -13,6 +14,7 @@ public class CombatAttributesNeoforge {
         CombatAttributes.init();
 
         ModAttributesNeoforge.REGISTRY.register(eventBus);
+        PlayerResourceAttachmentNeoforge.REGISTRY.register(eventBus);
         ModAttributesNeoforge.init();
     }
 }

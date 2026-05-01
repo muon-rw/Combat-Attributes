@@ -1,5 +1,6 @@
 package dev.muon.combat_attributes;
 
+import dev.muon.combat_attributes.client.HudBarsFabric;
 import dev.muon.combat_attributes.compat.DynamicTooltipsIntegration;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -14,6 +15,11 @@ import net.fabricmc.loader.api.FabricLoader;
  * as flat decimals (e.g. {@code +0.1} instead of {@code +10%}). The {@code isModLoaded}
  * gate keeps the JVM from class-loading {@link DynamicTooltipsIntegration} (and through it,
  * DT's API class) when DT isn't on the classpath.
+ *
+ * <p>HUD bar registration ({@link HudBarsFabric}) lives here too because Fabric API's
+ * {@code HudElementRegistry} is client-only — keeping the call gated behind
+ * {@code ClientModInitializer} matches the wider convention that loader registration
+ * happens once at startup, before the registry freezes.
  */
 public class CombatAttributesFabricClient implements ClientModInitializer {
 
@@ -22,5 +28,6 @@ public class CombatAttributesFabricClient implements ClientModInitializer {
         if (FabricLoader.getInstance().isModLoaded("dynamictooltips")) {
             DynamicTooltipsIntegration.init();
         }
+        HudBarsFabric.initClient();
     }
 }

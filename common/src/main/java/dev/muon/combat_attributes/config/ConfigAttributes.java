@@ -115,4 +115,24 @@ public class ConfigAttributes extends Config {
 
     @Comment("Reduces fired arrow inaccuracy for both bows and crossbows. +1.0 = perfect accuracy (no spread). PROBABILISTIC stacking with M=1.0 and a slow k=2.0 — full accuracy reachable but expensive.")
     public AttributeSpec accuracy = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.PROBABILISTIC, 1.0, 2.0);
+
+    // --- Player resources (stamina / mana) ---
+
+    @Comment("Maximum stamina pool. The HUD bar always shows 10 pips, scaled to this value. Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec maxStamina = new AttributeSpec(20.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Stamina regenerated per second (split across 20 ticks). Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec staminaRegen = new AttributeSpec(1.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Multiplier on stamina costs paid by abilities — 1.0 = full cost, 0.5 = half cost. Other mods are expected to consume current stamina via this multiplier. Percent display. Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec staminaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Maximum mana pool. The HUD bar always shows 10 pips, scaled to this value. Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec maxMana = new AttributeSpec(20.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Mana regenerated per second (split across 20 ticks). Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec manaRegen = new AttributeSpec(1.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Multiplier on mana costs paid by abilities — 1.0 = full cost, 0.5 = half cost. Other mods are expected to consume current mana via this multiplier. Percent display. Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec manaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
 }

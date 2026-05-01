@@ -22,5 +22,17 @@
   "attribute.combat_attributes.arrow_velocity": "Arrow Velocity",
   "attribute.combat_attributes.arrow_velocity.desc": "Increases the launch speed of arrows fired from bows and crossbows.",
   "attribute.combat_attributes.accuracy": "Projectile Accuracy",
-  "attribute.combat_attributes.accuracy.desc": "Reduces spread of fired arrows; at maximum, removes all inaccuracy."
+  "attribute.combat_attributes.accuracy.desc": "Reduces spread of fired arrows; at maximum, removes all inaccuracy.",
+  "attribute.combat_attributes.max_stamina": "Maximum Stamina",
+  "attribute.combat_attributes.max_stamina.desc": "Maximum stamina pool. Stamina powers ability use.",
+  "attribute.combat_attributes.stamina_regen": "Stamina Regeneration",
+  "attribute.combat_attributes.stamina_regen.desc": "Stamina regenerated per second.",
+  "attribute.combat_attributes.stamina_cost": "Stamina Cost",
+  "attribute.combat_attributes.stamina_cost.desc": "Multiplier applied to stamina costs paid by abilities.",
+  "attribute.combat_attributes.max_mana": "Maximum Mana",
+  "attribute.combat_attributes.max_mana.desc": "Maximum mana pool. Mana powers ability use.",
+  "attribute.combat_attributes.mana_regen": "Mana Regeneration",
+  "attribute.combat_attributes.mana_regen.desc": "Mana regenerated per second.",
+  "attribute.combat_attributes.mana_cost": "Mana Cost",
+  "attribute.combat_attributes.mana_cost.desc": "Multiplier applied to mana costs paid by abilities."
 }

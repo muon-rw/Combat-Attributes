@@ -22,6 +22,10 @@ import java.util.function.Supplier;
  * chooses the concrete attribute class: vanilla {@code RangedAttribute} for {@code LINEAR},
  * {@code DiminishingRangedAttribute} (or the percent variant on NeoForge) for the others.
  *
+ * <p>{@link Entry#playerOnly} restricts an attribute to {@code EntityType.PLAYER}. Combat
+ * stats apply to every {@code LivingEntity} (mobs crit, evade, lifesteal); the resource
+ * stats (stamina/mana) attach only to players, since mobs neither tick regen nor pay costs.
+ *
  * <p>All attribute reads from this mod's gameplay code should go through
  * {@link #valueOrDefault(LivingEntity, Holder)} so that a partial-registration edge case
  * (e.g. an entity loaded with a stale {@code AttributeSupplier} from a previous version,
@@ -38,13 +42,22 @@ public final class ModAttributes {
      * percent-display scale factor. Loader code consumes the scale: Fabric publishes it
      * to Dynamic Tooltips at client init; NeoForge picks {@code PercentageAttribute} /
      * {@code DiminishingPercentageAttribute} as the concrete class at registration time.
+     *
+     * <p>{@code playerOnly} entries are skipped when building/augmenting attribute
+     * suppliers for non-player entity types.
      */
-    public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale) {
+    public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale, boolean playerOnly) {
         public static Entry percent(String id, Supplier<AttributeSpec> spec, double scale) {
-            return new Entry(id, spec, OptionalDouble.of(scale));
+            return new Entry(id, spec, OptionalDouble.of(scale), false);
         }
         public static Entry flat(String id, Supplier<AttributeSpec> spec) {
-            return new Entry(id, spec, OptionalDouble.empty());
+            return new Entry(id, spec, OptionalDouble.empty(), false);
+        }
+        public static Entry playerFlat(String id, Supplier<AttributeSpec> spec) {
+            return new Entry(id, spec, OptionalDouble.empty(), true);
+        }
+        public static Entry playerPercent(String id, Supplier<AttributeSpec> spec, double scale) {
+            return new Entry(id, spec, OptionalDouble.of(scale), true);
         }
     }
 
@@ -65,7 +78,14 @@ public final class ModAttributes {
             // Bow physics
             Entry.percent("draw_speed",         () -> Configs.ATTRIBUTES.drawSpeed,        100.0),
             Entry.percent("arrow_velocity",     () -> Configs.ATTRIBUTES.arrowVelocity,    100.0),
-            Entry.percent("accuracy",           () -> Configs.ATTRIBUTES.accuracy,         100.0)
+            Entry.percent("accuracy",           () -> Configs.ATTRIBUTES.accuracy,         100.0),
+            // Player resources
+            Entry.playerFlat   ("max_stamina",    () -> Configs.ATTRIBUTES.maxStamina),
+            Entry.playerFlat   ("stamina_regen",  () -> Configs.ATTRIBUTES.staminaRegen),
+            Entry.playerPercent("stamina_cost",   () -> Configs.ATTRIBUTES.staminaCost,    100.0),
+            Entry.playerFlat   ("max_mana",       () -> Configs.ATTRIBUTES.maxMana),
+            Entry.playerFlat   ("mana_regen",     () -> Configs.ATTRIBUTES.manaRegen),
+            Entry.playerPercent("mana_cost",      () -> Configs.ATTRIBUTES.manaCost,       100.0)
     );
 
     private static final Map<String, Holder<Attribute>> HOLDERS = new HashMap<>();
@@ -110,4 +130,10 @@ public final class ModAttributes {
     public static Holder<Attribute> drawSpeed()        { return get("draw_speed"); }
     public static Holder<Attribute> arrowVelocity()    { return get("arrow_velocity"); }
     public static Holder<Attribute> accuracy()         { return get("accuracy"); }
+    public static Holder<Attribute> maxStamina()       { return get("max_stamina"); }
+    public static Holder<Attribute> staminaRegen()     { return get("stamina_regen"); }
+    public static Holder<Attribute> staminaCost()      { return get("stamina_cost"); }
+    public static Holder<Attribute> maxMana()          { return get("max_mana"); }
+    public static Holder<Attribute> manaRegen()        { return get("mana_regen"); }
+    public static Holder<Attribute> manaCost()         { return get("mana_cost"); }
 }

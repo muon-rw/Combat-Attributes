@@ -7,6 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -48,30 +49,37 @@ public final class ModAttributesFabric {
      * No-op trampoline. Calling it forces this class's {@code <clinit>}, which
      * registers every mod attribute exactly once. Called from
      * {@code ModInitializer.onInitialize} (the primary path) and from
-     * {@link #augment(AttributeSupplier)} (defensive — {@code getSupplier} is not
-     * invoked before mod load completes, but the call is cheap).
+     * {@link #augment(AttributeSupplier, EntityType)} (defensive — {@code getSupplier} is
+     * not invoked before mod load completes, but the call is cheap).
      */
     public static void ensureInitialized() {}
 
     /**
      * Builds a copy of {@code original} that includes every Combat Attributes
-     * holder in addition to the original's attributes. Existing entries keep
-     * their base values. Called from {@code DefaultAttributesMixin}, which caches
-     * the result so each entity type pays the rebuild cost once.
+     * holder appropriate for {@code entityType}, in addition to the original's
+     * attributes. Existing entries keep their base values. Called from
+     * {@code DefaultAttributesMixin}, which caches the result so each entity
+     * type pays the rebuild cost once.
+     *
+     * <p>{@code playerOnly} entries are filtered out for non-player entity types so
+     * stamina/mana attach only to the player.
      *
      * <p>Reads {@code original.instances} via {@link AttributeSupplierAccessor}, since
      * vanilla's {@code AttributeSupplier.Builder} lacks a copy constructor (NeoForge has
      * one, but it is not in vanilla).
      */
-    public static AttributeSupplier augment(AttributeSupplier original) {
+    public static AttributeSupplier augment(AttributeSupplier original, EntityType<?> entityType) {
         ensureInitialized();
+        boolean isPlayer = entityType == EntityType.PLAYER;
         AttributeSupplier.Builder builder = AttributeSupplier.builder();
         Map<Holder<Attribute>, AttributeInstance> instances =
                 ((AttributeSupplierAccessor) original).combat_attributes$getInstances();
         for (Map.Entry<Holder<Attribute>, AttributeInstance> entry : instances.entrySet()) {
             builder.add(entry.getKey(), entry.getValue().getBaseValue());
         }
-        for (Holder<Attribute> holder : ModAttributes.allHolders()) {
+        for (ModAttributes.Entry entry : ModAttributes.ALL) {
+            if (entry.playerOnly() && !isPlayer) continue;
+            Holder<Attribute> holder = ModAttributes.get(entry.id());
             if (!original.hasAttribute(holder)) {
                 builder.add(holder);
             }
