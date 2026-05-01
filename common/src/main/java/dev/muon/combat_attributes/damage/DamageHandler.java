@@ -3,6 +3,7 @@ package dev.muon.combat_attributes.damage;
 import dev.muon.combat_attributes.attribute.ModAttributes;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -71,6 +72,12 @@ public final class DamageHandler {
                     ModAttributes.meleeCritChance(), ModAttributes.meleeCritDamage());
         }
 
+        // Magic defense: armor-style mitigation on incoming magic damage. Applied after crits,
+        // mirroring the order vanilla armor sees damage in (post-modifier, pre-hurtServer).
+        if (magic) {
+            damage = applyMagicDefense(victim, source, damage);
+        }
+
         return damage;
     }
 
@@ -103,5 +110,13 @@ public final class DamageHandler {
         if (attacker.getRandom().nextDouble() >= chance) return damage;
         double mult = ModAttributes.valueOrDefault(attacker, damageAttr);
         return (float) (damage * mult);
+    }
+
+    private static float applyMagicDefense(LivingEntity victim, DamageSource source, float damage) {
+        double magicDefense = ModAttributes.valueOrDefault(victim, ModAttributes.magicDefense());
+        if (magicDefense <= 0.0) return damage;
+        // Reuse vanilla armor math directly. Toughness=0 since there's no separate magic toughness
+        // attribute; with that, CombatRules degenerates to clamp(magicDefense - damage/2, ...) /25.
+        return CombatRules.getDamageAfterAbsorb(victim, damage, source, (float) magicDefense, 0.0F);
     }
 }

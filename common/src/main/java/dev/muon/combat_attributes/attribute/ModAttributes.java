@@ -72,9 +72,11 @@ public final class ModAttributes {
             // Magic
             Entry.percent("magic_crit_chance",  () -> Configs.ATTRIBUTES.magicCritChance,  100.0),
             Entry.percent("magic_crit_damage",  () -> Configs.ATTRIBUTES.magicCritDamage,  100.0),
+            Entry.flat   ("magic_power",        () -> Configs.ATTRIBUTES.magicPower),
             // Defensive
             Entry.percent("evasion",            () -> Configs.ATTRIBUTES.evasion,          100.0),
             Entry.percent("lifesteal",          () -> Configs.ATTRIBUTES.lifesteal,        100.0),
+            Entry.flat   ("magic_defense",      () -> Configs.ATTRIBUTES.magicDefense),
             // Bow physics
             Entry.percent("draw_speed",         () -> Configs.ATTRIBUTES.drawSpeed,        100.0),
             Entry.percent("arrow_velocity",     () -> Configs.ATTRIBUTES.arrowVelocity,    100.0),
@@ -85,7 +87,9 @@ public final class ModAttributes {
             Entry.playerPercent("stamina_cost",   () -> Configs.ATTRIBUTES.staminaCost,    100.0),
             Entry.playerFlat   ("max_mana",       () -> Configs.ATTRIBUTES.maxMana),
             Entry.playerFlat   ("mana_regen",     () -> Configs.ATTRIBUTES.manaRegen),
-            Entry.playerPercent("mana_cost",      () -> Configs.ATTRIBUTES.manaCost,       100.0)
+            Entry.playerPercent("mana_cost",      () -> Configs.ATTRIBUTES.manaCost,       100.0),
+            // Player progression
+            Entry.playerPercent("experience_gain",() -> Configs.ATTRIBUTES.experienceGain, 100.0)
     );
 
     private static final Map<String, Holder<Attribute>> HOLDERS = new HashMap<>();
@@ -125,8 +129,10 @@ public final class ModAttributes {
     public static Holder<Attribute> rangedCritDamage() { return get("ranged_crit_damage"); }
     public static Holder<Attribute> magicCritChance()  { return get("magic_crit_chance"); }
     public static Holder<Attribute> magicCritDamage()  { return get("magic_crit_damage"); }
+    public static Holder<Attribute> magicPower()       { return get("magic_power"); }
     public static Holder<Attribute> evasion()          { return get("evasion"); }
     public static Holder<Attribute> lifesteal()        { return get("lifesteal"); }
+    public static Holder<Attribute> magicDefense()     { return get("magic_defense"); }
     public static Holder<Attribute> drawSpeed()        { return get("draw_speed"); }
     public static Holder<Attribute> arrowVelocity()    { return get("arrow_velocity"); }
     public static Holder<Attribute> accuracy()         { return get("accuracy"); }
@@ -136,4 +142,5 @@ public final class ModAttributes {
     public static Holder<Attribute> maxMana()          { return get("max_mana"); }
     public static Holder<Attribute> manaRegen()        { return get("mana_regen"); }
     public static Holder<Attribute> manaCost()         { return get("mana_cost"); }
+    public static Holder<Attribute> experienceGain()   { return get("experience_gain"); }
 }

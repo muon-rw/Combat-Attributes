@@ -97,6 +97,9 @@ public class ConfigAttributes extends Config {
     @Comment("Damage multiplier applied to magic critical strikes. Default 1.5. SOFT_CAP — same shape as melee crit damage.")
     public AttributeSpec magicCritDamage = new AttributeSpec(1.5, 1.0, 100.0, StackingMode.SOFT_CAP, 1.0, 0.4);
 
+    @Comment("Magic damage multiplier — analog to attack damage for magic. Base 1.0. Currently has no built-in hooks; reserved for spell mods to read. LINEAR — vanilla stacking.")
+    public AttributeSpec magicPower = new AttributeSpec(1.0, 0.0, 1000.0, StackingMode.LINEAR, 0.0, 1.0);
+
     // --- Defensive ---
 
     @Comment("Probability (0–1) of dodging incoming damage of any source. PROBABILISTIC — capped at 30% per source, lower than crit chance so two maxed sources still leave the player ~50% exposed.")
@@ -104,6 +107,9 @@ public class ConfigAttributes extends Config {
 
     @Comment("Fraction of damage dealt that heals the attacker. Applies only when the attacker is within their entity_interaction_range of the victim. LINEAR — vanilla stacking.")
     public AttributeSpec lifesteal = new AttributeSpec(0.0, 0.0, 1.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    @Comment("Armor-style mitigation that applies to incoming #c:is_magic damage. Uses vanilla's CombatRules.getDamageAfterAbsorb formula with toughness=0 — same shape as the ARMOR attribute. LINEAR — vanilla stacking.")
+    public AttributeSpec magicDefense = new AttributeSpec(0.0, 0.0, 30.0, StackingMode.LINEAR, 0.0, 1.0);
 
     // --- Bow physics ---
 
@@ -135,4 +141,9 @@ public class ConfigAttributes extends Config {
 
     @Comment("Multiplier on mana costs paid by abilities — 1.0 = full cost, 0.5 = half cost. Other mods are expected to consume current mana via this multiplier. Percent display. Player-only. LINEAR — vanilla stacking.")
     public AttributeSpec manaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
+
+    // --- Player progression ---
+
+    @Comment("Multiplier on XP added to the player's XP bar from experience orbs — 1.0 = vanilla, 0.5 = half, 2.0 = double. Below 1.0 reduces gain. Does not change orb values themselves; only what's awarded on pickup. Percent display. Player-only. LINEAR — vanilla stacking.")
+    public AttributeSpec experienceGain = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.LINEAR, 0.0, 1.0);
 }
