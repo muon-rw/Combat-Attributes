@@ -12,8 +12,10 @@ import net.minecraft.server.level.ServerPlayer;
  * resources are written in a single {@code set(...)} call so a single sync
  * packet covers the tick.
  *
- * <p>Skips entirely when both pools are already at max — saves a redundant
- * read/clamp/write per tick on rested players.
+ * <p>Skips entirely when both pools sit exactly at max — saves a redundant
+ * read/clamp/write per tick on rested players. Values that are <em>over</em>
+ * max (e.g. the player's max attribute dropped after a buff expired) are
+ * clamped down to max here so the persisted state stops drifting.
  */
 public final class PlayerResourceTicker {
 
@@ -26,15 +28,15 @@ public final class PlayerResourceTicker {
         float maxMana    = PlayerResources.getMaxMana(player);
         PlayerResourceData data = PlayerResources.get(player);
 
-        boolean staminaFull = data.stamina() >= maxStamina;
-        boolean manaFull    = data.mana()    >= maxMana;
-        if (staminaFull && manaFull) return;
+        if (data.stamina() == maxStamina && data.mana() == maxMana) return;
 
         float staminaRegen = (float) ModAttributes.valueOrDefault(player, ModAttributes.staminaRegen());
         float manaRegen    = (float) ModAttributes.valueOrDefault(player, ModAttributes.manaRegen());
 
-        float nextStamina = staminaFull ? data.stamina() : Math.min(data.stamina() + staminaRegen * SECONDS_PER_TICK, maxStamina);
-        float nextMana    = manaFull    ? data.mana()    : Math.min(data.mana()    + manaRegen    * SECONDS_PER_TICK, maxMana);
+        float nextStamina = data.stamina() > maxStamina ? maxStamina
+                : Math.min(data.stamina() + staminaRegen * SECONDS_PER_TICK, maxStamina);
+        float nextMana    = data.mana() > maxMana ? maxMana
+                : Math.min(data.mana() + manaRegen * SECONDS_PER_TICK, maxMana);
 
         PlayerResources.writeIfChanged(player, data, new PlayerResourceData(nextStamina, nextMana));
     }
