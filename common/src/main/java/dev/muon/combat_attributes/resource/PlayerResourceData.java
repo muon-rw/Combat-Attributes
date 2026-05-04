@@ -18,28 +18,31 @@ import net.minecraft.network.codec.StreamCodec;
  * at use time; they are not persisted here. Only the live consumable values
  * are stored, so respeccing the player's max attributes recalculates the
  * displayed bar size without touching this record.
+ *
+ * <p>{@code staminaRegenDelayTicks} counts down each server tick while greater
+ * than zero, gating stamina regen during that window. Set whenever a write
+ * brings stamina from a positive value to exactly zero — the recovery delay
+ * after exhaustion. Mana has no equivalent.
  */
-public record PlayerResourceData(float stamina, float mana) {
+public record PlayerResourceData(float stamina, float mana, int staminaRegenDelayTicks) {
 
-    public static final PlayerResourceData DEFAULT = new PlayerResourceData(0.0F, 0.0F);
+    public static final PlayerResourceData DEFAULT = new PlayerResourceData(0.0F, 0.0F, 0);
 
     public static final Codec<PlayerResourceData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.FLOAT.optionalFieldOf("stamina", 0.0F).forGetter(PlayerResourceData::stamina),
-            Codec.FLOAT.optionalFieldOf("mana",    0.0F).forGetter(PlayerResourceData::mana)
+            Codec.FLOAT.optionalFieldOf("mana",    0.0F).forGetter(PlayerResourceData::mana),
+            Codec.INT  .optionalFieldOf("stamina_regen_delay", 0).forGetter(PlayerResourceData::staminaRegenDelayTicks)
     ).apply(instance, PlayerResourceData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerResourceData> STREAM_CODEC =
             StreamCodec.composite(
-                    ByteBufCodecs.FLOAT, PlayerResourceData::stamina,
-                    ByteBufCodecs.FLOAT, PlayerResourceData::mana,
+                    ByteBufCodecs.FLOAT,   PlayerResourceData::stamina,
+                    ByteBufCodecs.FLOAT,   PlayerResourceData::mana,
+                    ByteBufCodecs.VAR_INT, PlayerResourceData::staminaRegenDelayTicks,
                     PlayerResourceData::new
             );
 
-    public PlayerResourceData withStamina(float stamina) {
-        return new PlayerResourceData(stamina, this.mana);
-    }
-
     public PlayerResourceData withMana(float mana) {
-        return new PlayerResourceData(this.stamina, mana);
+        return new PlayerResourceData(this.stamina, mana, this.staminaRegenDelayTicks);
     }
 }

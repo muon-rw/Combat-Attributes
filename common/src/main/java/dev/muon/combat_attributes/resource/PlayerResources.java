@@ -1,6 +1,7 @@
 package dev.muon.combat_attributes.resource;
 
 import dev.muon.combat_attributes.attribute.ModAttributes;
+import dev.muon.combat_attributes.config.Configs;
 import dev.muon.combat_attributes.platform.Services;
 import net.minecraft.world.entity.player.Player;
 
@@ -13,7 +14,22 @@ import net.minecraft.world.entity.player.Player;
  *
  * <p>Read methods always clamp into {@code [0, max]} on the way out so callers
  * never see a stale "current > max" if the player's max attribute dropped after
- * the last write. Write methods clamp on the way in for the same reason.
+ * the last write.
+ *
+ * <p>Every write path dispatches the loader-native {@code ChangeStaminaEvent} /
+ * {@code ChangeManaEvent} via {@link Services#PLATFORM} before committing, so
+ * listeners can mutate or cancel the change. Listeners receive the raw caller
+ * argument — values outside {@code [0, max]} are possible (a consumer that
+ * tries to drain more stamina than the player has will pass a negative). The
+ * returned value is re-clamped into {@code [0, max]} after listeners run, so
+ * listeners cannot push the pool out of range through this hook; a no-op
+ * result (listener returned {@code oldValue}) skips the write.
+ *
+ * <p>Whenever a write brings stamina from positive down to exactly zero, the
+ * persisted {@code staminaRegenDelayTicks} is set from
+ * {@link dev.muon.combat_attributes.config.ConfigGeneral#staminaEmptyRegenDelay}
+ * so the regen ticker pauses recovery during the configured exhaustion window.
+ * Mana writes never touch this field.
  */
 public final class PlayerResources {
 
@@ -39,42 +55,115 @@ public final class PlayerResources {
         return (float) ModAttributes.valueOrDefault(player, ModAttributes.maxMana());
     }
 
+    /**
+     * Whether the player has any stamina available to spend right now. While
+     * stamina sits at zero (the post-exhaustion lockout window), consumers
+     * should refuse to perform their action rather than no-op-drain.
+     */
+    public static boolean canSpendStamina(Player player) {
+        return getStamina(player) > 0.0F;
+    }
+
+    /** Mana counterpart to {@link #canSpendStamina(Player)}. No lockout — purely a {@code > 0} check. */
+    public static boolean canSpendMana(Player player) {
+        return getMana(player) > 0.0F;
+    }
+
+    /**
+     * Atomically gate-and-spend the configured cost. Returns {@code true} if the player
+     * had any stamina (the spend went through, possibly taking them to zero and arming
+     * the lockout) or {@code false} if stamina was already exhausted (no spend happened
+     * and the caller should block its action). Costs of {@code <= 0} are treated as a
+     * trivial success — useful for "feature disabled" config values without a separate
+     * branch at every call site.
+     *
+     * <p>Typical use:
+     * <pre>{@code
+     *   if (!PlayerResources.trySpendStamina(player, cost)) {
+     *       blockAction();
+     *       return;
+     *   }
+     * }</pre>
+     */
+    public static boolean trySpendStamina(Player player, float cost) {
+        if (cost <= 0.0F) return true;
+        float currentStamina = getStamina(player);
+        if (currentStamina <= 0.0F) return false;
+        setStamina(player, currentStamina - cost);
+        return true;
+    }
+
+    /** Mana counterpart to {@link #trySpendStamina(Player, float)}. */
+    public static boolean trySpendMana(Player player, float cost) {
+        if (cost <= 0.0F) return true;
+        float currentMana = getMana(player);
+        if (currentMana <= 0.0F) return false;
+        setMana(player, currentMana - cost);
+        return true;
+    }
+
     public static void setStamina(Player player, float stamina) {
         PlayerResourceData current = get(player);
-        float clamped = clamp(stamina, getMaxStamina(player));
-        if (clamped == current.stamina()) return;
-        Services.PLATFORM.getPlayerResourceStore().set(player, current.withStamina(clamped));
+        if (stamina == current.stamina()) return;
+        boolean intentToDeplete = stamina <= 0.0F && current.stamina() > 0.0F;
+        float resolved = clamp(Services.PLATFORM.fireChangeStamina(player, current.stamina(), stamina), getMaxStamina(player));
+        int delay = nextStaminaRegenDelay(current.staminaRegenDelayTicks(), intentToDeplete);
+        PlayerResourceData finalData = new PlayerResourceData(resolved, current.mana(), delay);
+        if (finalData.equals(current)) return;
+        Services.PLATFORM.getPlayerResourceStore().set(player, finalData);
     }
 
     public static void setMana(Player player, float mana) {
         PlayerResourceData current = get(player);
-        float clamped = clamp(mana, getMaxMana(player));
-        if (clamped == current.mana()) return;
-        Services.PLATFORM.getPlayerResourceStore().set(player, current.withMana(clamped));
+        if (mana == current.mana()) return;
+        float resolved = clamp(Services.PLATFORM.fireChangeMana(player, current.mana(), mana), getMaxMana(player));
+        if (resolved == current.mana()) return;
+        Services.PLATFORM.getPlayerResourceStore().set(player, current.withMana(resolved));
     }
 
     /**
-     * Writes both fields in a single attachment update — preferred when both are
-     * changing in the same tick (e.g. the regen ticker) so the auto-sync produces
-     * one network packet instead of two.
-     */
-    public static void set(Player player, float stamina, float mana) {
-        PlayerResourceData current = get(player);
-        float s = clamp(stamina, getMaxStamina(player));
-        float m = clamp(mana,    getMaxMana(player));
-        if (s == current.stamina() && m == current.mana()) return;
-        Services.PLATFORM.getPlayerResourceStore().set(player, new PlayerResourceData(s, m));
-    }
-
-    /**
-     * Direct write path for callers that already hold the prior {@link PlayerResourceData}
-     * and have produced clamped values themselves (e.g. the regen ticker, which had to
-     * read the max attributes anyway to gate its early-return). Skips the re-fetch and
-     * re-clamp that {@link #set(Player, float, float)} performs.
+     * Package-private write path for callers (i.e. the regen ticker) that already hold the
+     * prior {@link PlayerResourceData} and have produced clamped values themselves. Skips
+     * the re-fetch a public setter would perform, but still dispatches the per-resource
+     * change events and re-clamps any listener-mutated value.
+     *
+     * <p>Trusts the caller's {@code next.staminaRegenDelayTicks()} as authoritative —
+     * lockout arming is the responsibility of the public depletion paths
+     * ({@link #setStamina}, {@link #trySpendStamina}). The ticker decrements the timer
+     * through this method without re-arming it.
      */
     static void writeIfChanged(Player player, PlayerResourceData previous, PlayerResourceData next) {
-        if (next.stamina() == previous.stamina() && next.mana() == previous.mana()) return;
-        Services.PLATFORM.getPlayerResourceStore().set(player, next);
+        if (next.equals(previous)) return;
+        float s = next.stamina();
+        float m = next.mana();
+        if (s != previous.stamina()) {
+            s = clamp(Services.PLATFORM.fireChangeStamina(player, previous.stamina(), s), getMaxStamina(player));
+        }
+        if (m != previous.mana()) {
+            m = clamp(Services.PLATFORM.fireChangeMana(player, previous.mana(), m), getMaxMana(player));
+        }
+        PlayerResourceData finalData = new PlayerResourceData(s, m, next.staminaRegenDelayTicks());
+        if (finalData.equals(previous)) return;
+        Services.PLATFORM.getPlayerResourceStore().set(player, finalData);
+    }
+
+    /**
+     * Lockout policy: arm the delay from config whenever the caller's intent was to
+     * deplete (raw stamina argument {@code <= 0} and current was positive). Tracking
+     * intent rather than the post-listener resolved value matters because the
+     * {@code stamina_cost} multiplier can keep stamina from landing at exactly zero
+     * even when the caller asked for a full depletion — without this, players in
+     * that asymptotic regime would never trigger the recovery window.
+     */
+    private static int nextStaminaRegenDelay(int proposedDelay, boolean armLockout) {
+        if (armLockout) return Math.max(proposedDelay, lockoutTicks());
+        return proposedDelay;
+    }
+
+    private static int lockoutTicks() {
+        double seconds = Configs.GENERAL.staminaEmptyRegenDelay.get();
+        if (seconds <= 0.0) return 0;
+        return (int) Math.round(seconds * 20.0);
     }
 
     private static float clamp(float v, float max) {
