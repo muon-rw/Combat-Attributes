@@ -61,7 +61,7 @@ public class ConfigGeneral extends Config {
 
     @Comment("Stamina drained per server tick while sprinting. At default staminaRegen=1.0/sec, the break-even tick rate is 0.05. " +
             "When stamina hits zero the player is force-unsprinted until the lockout ends. Set to 0.0 to disable.")
-    public ValidatedDouble sprintStaminaCost = new ValidatedDouble(0.06, 1000.0, 0.0);
+    public ValidatedDouble sprintStaminaCost = new ValidatedDouble(0.05, 1000.0, 0.0);
 
     @Comment("Stamina drained per ground jump (Player#jumpFromGround). " +
             "Jumping is blocked when stamina is exhausted. Set to 0.0 to disable.")
