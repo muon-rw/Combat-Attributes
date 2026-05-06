@@ -133,7 +133,7 @@ public class ConfigAttributes extends Config {
     public AttributeSpec maxStamina = new AttributeSpec(20.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
 
     @Comment("Stamina regenerated per second (split across 20 ticks). Player-only. LINEAR — vanilla stacking.")
-    public AttributeSpec staminaRegen = new AttributeSpec(1.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+    public AttributeSpec staminaRegen = new AttributeSpec(2.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
 
     @Comment("Multiplier on stamina costs paid by abilities — 1.0 = full cost, 0.5 = half cost, 0.0 = free. Other mods are expected to consume current stamina via this multiplier. Percent display, NEGATIVE sentiment (lower is better). Player-only. MULTIPLICATIVE stacking — reductions diminish per slot at a 30% cap, then combine multiplicatively (two 30% reductions → 51% off), mirroring evasion's shape on the buff side.")
     public AttributeSpec staminaCost = new AttributeSpec(1.0, 0.0, 100.0, StackingMode.MULTIPLICATIVE, 0.3, 0.15);
