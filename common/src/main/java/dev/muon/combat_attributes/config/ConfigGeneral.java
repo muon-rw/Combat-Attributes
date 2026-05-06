@@ -75,13 +75,24 @@ public class ConfigGeneral extends Config {
             "Tridents are not covered — see tridentThrowStaminaCost.")
     public ValidatedDouble rangedDrawStaminaCost = new ValidatedDouble(1.0, 1000.0, 0.0);
 
-    @Comment("If true, holding a bow at full draw drains stamina at the player's per-tick regen rate, " +
-            "neutralising the regen and pinning stamina at its current level for as long as the bow is held. " +
-            "Implemented as an actual drain (subject to the stamina_cost multiplier just like every other " +
-            "drain) rather than a separate regen-pause mechanic — so a player with reduced stamina_cost " +
-            "actually regens slowly while holding, and one with amplified stamina_cost loses stamina. " +
-            "Crossbow/trident/mod weapons are not affected.")
-    public ValidatedBoolean bowHoldFreezesStamina = new ValidatedBoolean(true);
+    @Comment("If true, stamina regen is paused for as long as the player is using any ProjectileWeaponItem — " +
+            "i.e. throughout a bow draw (charge + held at full), throughout a crossbow charge, and throughout " +
+            "use of mod-defined ranged weapons. Charge-phase drain (rangedDrawStaminaCost) still applies; this " +
+            "only suppresses the per-tick regen so the drain is not partially offset. Tridents are not covered. " +
+            "Note: mod ranged weapons that extend ProjectileWeaponItem with vanilla's default 72000-tick " +
+            "getUseDuration will pause regen for as long as right-click is held.")
+    public ValidatedBoolean rangedDrawPausesStaminaRegen = new ValidatedBoolean(true);
+
+    @Comment("If true, stamina regen is paused while the player's head is submerged (isUnderWater()). " +
+            "Composes with the existing swim drain — actively swimming underwater both drains and pauses " +
+            "regen; standing still underwater (e.g. on the floor) just pauses regen. Player must surface " +
+            "to recover stamina.")
+    public ValidatedBoolean underwaterPausesStaminaRegen = new ValidatedBoolean(true);
+
+    @Comment("Seconds of stamina regen pause armed on each full-cooldown melee swing (strength scale >= 0.9). " +
+            "Independent of attackStaminaCost — works even when the per-swing drain is disabled. Composes with " +
+            "the post-exhaustion lockout via max(): never shortens an existing longer delay. Set to 0.0 to disable.")
+    public ValidatedDouble attackPauseStaminaRegenSeconds = new ValidatedDouble(1.0, 60.0, 0.0);
 
     @Comment("Stamina drained on a successful trident throw (timeHeld >= 10 ticks AND vanilla decided to " +
             "actually fire — broken tridents, failed riptide conditions etc. don't drain). Riptide and " +

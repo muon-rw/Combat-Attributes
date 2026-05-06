@@ -3,6 +3,8 @@ package dev.muon.combat_attributes.resource;
 import dev.muon.combat_attributes.attribute.ModAttributes;
 import dev.muon.combat_attributes.config.Configs;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ProjectileWeaponItem;
 
 /**
  * Per-tick stamina + mana regeneration plus the per-tick stamina consumers
@@ -71,11 +73,11 @@ public final class PlayerResourceTicker {
      * {@link PlayerResources#writeIfChanged} so an idle player at full pools
      * with no lockout running produces zero packets.
      *
-     * <p>Stamina regen is gated by the persisted lockout timer
-     * ({@code staminaRegenDelayTicks}); mana regen is unconditional. Values
-     * over the current max are clamped down here so a buff-expire scenario
-     * (max dropped after the last write) stops drifting once the ticker
-     * notices.
+     * <p>Stamina regen runs only when both the persisted delay timer
+     * ({@code staminaRegenDelayTicks}) is zero AND no live regen-pause condition
+     * holds (see {@link #shouldPauseStaminaRegen}). Mana regen is unconditional.
+     * Values over the current max are clamped down here so a buff-expire scenario
+     * (max dropped after the last write) stops drifting once the ticker notices.
      */
     private static void applyRegenAndDecrementLockout(ServerPlayer player) {
         PlayerResourceData data = PlayerResources.get(player);
@@ -86,7 +88,7 @@ public final class PlayerResourceTicker {
         int nextDelay = Math.max(0, delay - 1);
 
         float nextStamina = data.stamina() > maxStamina ? maxStamina : data.stamina();
-        if (delay == 0) {
+        if (delay == 0 && !shouldPauseStaminaRegen(player)) {
             float staminaRegen = (float) ModAttributes.valueOrDefault(player, ModAttributes.staminaRegen());
             nextStamina = Math.min(nextStamina + staminaRegen * SECONDS_PER_TICK, maxStamina);
         }
@@ -96,5 +98,23 @@ public final class PlayerResourceTicker {
         nextMana = Math.min(nextMana + manaRegen * SECONDS_PER_TICK, maxMana);
 
         PlayerResources.writeIfChanged(player, data, new PlayerResourceData(nextStamina, nextMana, nextDelay));
+    }
+
+    /**
+     * Live-state regen-pause predicates evaluated each tick. Composes with the
+     * persisted {@code staminaRegenDelayTicks} timer (post-exhaustion lockout +
+     * post-attack pause) — any of the four sources keeping regen suppressed is
+     * sufficient.
+     */
+    private static boolean shouldPauseStaminaRegen(Player player) {
+        if (Configs.GENERAL.rangedDrawPausesStaminaRegen.get()
+                && player.isUsingItem()
+                && player.getUseItem().getItem() instanceof ProjectileWeaponItem) {
+            return true;
+        }
+        if (Configs.GENERAL.underwaterPausesStaminaRegen.get() && player.isUnderWater()) {
+            return true;
+        }
+        return false;
     }
 }

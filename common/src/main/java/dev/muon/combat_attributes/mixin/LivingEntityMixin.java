@@ -53,14 +53,12 @@ public abstract class LivingEntityMixin {
      *       approximately {@code rangedDrawStaminaCost}, regardless of
      *       {@code draw_speed}. When stamina is in the post-exhaustion lockout, the
      *       attempt fails: the use is aborted via {@link Player#stopUsingItem()}
-     *       and the rest of this tick's update is cancelled.</li>
-     *   <li>Charge-window gate. Past the item's full charge — 20 ticks for
-     *       {@link BowItem}, {@link CrossbowItem#getChargeDuration} for crossbows —
-     *       holding the weapon no longer drains. Mod ranged weapons that extend
-     *       {@link ProjectileWeaponItem} fall back to {@code getUseDuration}, which
-     *       for vanilla-shaped items (default 72000) makes drain effectively trivial
-     *       and lets mod authors override behavior via a {@code ChangeStaminaEvent}
-     *       listener of their own.</li>
+     *       and the rest of this tick's update is cancelled. Past full charge —
+     *       20 ticks for {@link BowItem}, {@link CrossbowItem#getChargeDuration}
+     *       for crossbows, {@code getUseDuration} for mod ranged weapons — the
+     *       drain stops; the regen-pause that pins stamina at its current level
+     *       is applied separately by {@code PlayerResourceTicker} for as long as
+     *       the player is using the item.</li>
      *   <li>{@code draw_speed} acceleration (any LivingEntity using
      *       {@link ProjectileWeaponItem} or {@link TridentItem}). Mirrors Apothic
      *       Attributes' event-based handler — every full point adds one extra
@@ -79,28 +77,20 @@ public abstract class LivingEntityMixin {
         double drawSpeed = ModAttributes.valueOrDefault(self, ModAttributes.drawSpeed());
         int extras = drawSpeed != 0.0 ? combat_attributes$drawSpeedExtras(self.tickCount, drawSpeed) : 0;
 
-        // Phase 1: server-side ranged stamina (lockout block + per-tick drain).
+        // Phase 1: server-side ranged stamina (lockout block + per-tick charge-phase drain).
         if (isRanged && self instanceof Player player && !player.level().isClientSide()) {
             int chargeDuration = combat_attributes$chargeDurationTicks(useItem, self);
             int effectiveTicksElapsed = useItem.getUseDuration(self) - this.useItemRemaining;
             int progressThisTick = 1 - extras;
-            float drain = 0.0F;
 
             if (effectiveTicksElapsed < chargeDuration && progressThisTick > 0) {
-                // Charging — drain proportional to effective progress.
                 float baseCost = Configs.GENERAL.rangedDrawStaminaCost.get().floatValue();
-                drain = (baseCost / (float) chargeDuration) * progressThisTick;
-            } else if (useItem.getItem() instanceof BowItem
-                    && Configs.GENERAL.bowHoldFreezesStamina.get()) {
-                // Held at full draw (bow only) — drain at regen rate so net stamina is pinned.
-                float regenRate = (float) ModAttributes.valueOrDefault(self, ModAttributes.staminaRegen());
-                drain = regenRate / 20.0F;
-            }
-
-            if (drain > 0.0F && !PlayerResources.trySpendStamina(player, drain)) {
-                player.stopUsingItem();
-                ci.cancel();
-                return;
+                float drain = (baseCost / (float) chargeDuration) * progressThisTick;
+                if (drain > 0.0F && !PlayerResources.trySpendStamina(player, drain)) {
+                    player.stopUsingItem();
+                    ci.cancel();
+                    return;
+                }
             }
         }
 

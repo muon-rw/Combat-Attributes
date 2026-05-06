@@ -113,6 +113,25 @@ public final class PlayerResources {
         Services.PLATFORM.getPlayerResourceStore().set(player, finalData);
     }
 
+    /**
+     * Arms the stamina regen delay timer to {@code max(current, ticks)} — never shortens
+     * an existing longer delay. Used for non-depletion regen pauses (e.g. the post-attack
+     * pause); the post-exhaustion lockout has its own arming inside {@link #setStamina}.
+     * No-op when {@code ticks <= 0} or the existing delay already covers it.
+     *
+     * <p>Unlike the other public writes on this class, this method does not dispatch
+     * {@code ChangeStaminaEvent} / {@code ChangeManaEvent}: neither pool's value is
+     * changing, only the regen timer field. Listeners that gate on resource value
+     * mutations would have nothing to react to.
+     */
+    public static void armStaminaRegenDelay(Player player, int ticks) {
+        if (ticks <= 0) return;
+        PlayerResourceData current = get(player);
+        if (ticks <= current.staminaRegenDelayTicks()) return;
+        Services.PLATFORM.getPlayerResourceStore().set(player,
+                new PlayerResourceData(current.stamina(), current.mana(), ticks));
+    }
+
     public static void setMana(Player player, float mana) {
         PlayerResourceData current = get(player);
         if (mana == current.mana()) return;
