@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
@@ -46,5 +47,10 @@ public final class PlayerResourceEventsNeoforge {
         if (AttackStaminaHandler.shouldCancelAttack(event.getEntity())) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void onBreakBlock(BreakBlockEvent event) {
+        BlockBreakStaminaHandler.onBreakAttempt(event.getPlayer());
     }
 }

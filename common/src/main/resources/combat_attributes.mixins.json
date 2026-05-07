@@ -10,6 +10,7 @@
     "FoodDataMixin",
     "FoodPropertiesMixin",
     "LivingEntityMixin",
+    "PlayerDestroySpeedMixin",
     "PlayerJumpCritMixin",
     "ProjectileShootHelperMixin",
     "ProjectileWeaponItemMixin",

@@ -107,29 +107,11 @@ public final class PlayerResources {
         if (stamina == current.stamina()) return;
         boolean intentToDeplete = stamina <= 0.0F && current.stamina() > 0.0F;
         float resolved = clamp(Services.PLATFORM.fireChangeStamina(player, current.stamina(), stamina), getMaxStamina(player));
-        int delay = nextStaminaRegenDelay(current.staminaRegenDelayTicks(), intentToDeplete);
+        boolean drained = resolved < current.stamina();
+        int delay = nextStaminaRegenDelay(current.staminaRegenDelayTicks(), intentToDeplete, drained);
         PlayerResourceData finalData = new PlayerResourceData(resolved, current.mana(), delay);
         if (finalData.equals(current)) return;
         Services.PLATFORM.getPlayerResourceStore().set(player, finalData);
-    }
-
-    /**
-     * Arms the stamina regen delay timer to {@code max(current, ticks)} — never shortens
-     * an existing longer delay. Used for non-depletion regen pauses (e.g. the post-attack
-     * pause); the post-exhaustion lockout has its own arming inside {@link #setStamina}.
-     * No-op when {@code ticks <= 0} or the existing delay already covers it.
-     *
-     * <p>Unlike the other public writes on this class, this method does not dispatch
-     * {@code ChangeStaminaEvent} / {@code ChangeManaEvent}: neither pool's value is
-     * changing, only the regen timer field. Listeners that gate on resource value
-     * mutations would have nothing to react to.
-     */
-    public static void armStaminaRegenDelay(Player player, int ticks) {
-        if (ticks <= 0) return;
-        PlayerResourceData current = get(player);
-        if (ticks <= current.staminaRegenDelayTicks()) return;
-        Services.PLATFORM.getPlayerResourceStore().set(player,
-                new PlayerResourceData(current.stamina(), current.mana(), ticks));
     }
 
     public static void setMana(Player player, float mana) {
@@ -167,20 +149,38 @@ public final class PlayerResources {
     }
 
     /**
-     * Lockout policy: arm the delay from config whenever the caller's intent was to
-     * deplete (raw stamina argument {@code <= 0} and current was positive). Tracking
-     * intent rather than the post-listener resolved value matters because the
-     * {@code stamina_cost} multiplier can keep stamina from landing at exactly zero
-     * even when the caller asked for a full depletion — without this, players in
-     * that asymptotic regime would never trigger the recovery window.
+     * Composes the next regen-delay value from the existing timer plus two arming
+     * sources. Both sources land via {@code max()} so neither shortens the other —
+     * draining to zero in one shot raises the timer to the heavier exhaustion
+     * lockout, not the lighter universal drain delay.
+     *
+     * <ul>
+     *   <li><b>{@code armDrainPause}</b> — every successful drain (post-listener
+     *       resolved value lower than current) arms {@code staminaDrainRegenDelay}.
+     *       Souls-like recovery window between expenditure and regen.</li>
+     *   <li><b>{@code armLockout}</b> — raw caller intent of "deplete to zero or
+     *       below" arms {@code staminaEmptyRegenDelay}. Uses raw intent rather than
+     *       post-listener value because the {@code stamina_cost} multiplier can
+     *       keep stamina from landing at exactly zero — without this, players in
+     *       that asymptotic regime would never trigger exhaustion.</li>
+     * </ul>
      */
-    private static int nextStaminaRegenDelay(int proposedDelay, boolean armLockout) {
-        if (armLockout) return Math.max(proposedDelay, lockoutTicks());
-        return proposedDelay;
+    private static int nextStaminaRegenDelay(int proposedDelay, boolean armLockout, boolean armDrainPause) {
+        int target = proposedDelay;
+        if (armDrainPause) target = Math.max(target, drainPauseTicks());
+        if (armLockout)    target = Math.max(target, lockoutTicks());
+        return target;
     }
 
     private static int lockoutTicks() {
-        double seconds = Configs.GENERAL.staminaEmptyRegenDelay.get();
+        return secondsToTicks(Configs.GENERAL.staminaEmptyRegenDelay.get());
+    }
+
+    private static int drainPauseTicks() {
+        return secondsToTicks(Configs.GENERAL.staminaDrainRegenDelay.get());
+    }
+
+    private static int secondsToTicks(double seconds) {
         if (seconds <= 0.0) return 0;
         return (int) Math.round(seconds * 20.0);
     }

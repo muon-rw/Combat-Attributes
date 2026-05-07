@@ -88,7 +88,7 @@ public final class PlayerResourceTicker {
         int nextDelay = Math.max(0, delay - 1);
 
         float nextStamina = data.stamina() > maxStamina ? maxStamina : data.stamina();
-        if (delay == 0 && !shouldPauseStaminaRegen(player)) {
+        if (delay == 0 && nextStamina < maxStamina && !shouldPauseStaminaRegen(player)) {
             float staminaRegen = (float) ModAttributes.valueOrDefault(player, ModAttributes.staminaRegen());
             nextStamina = Math.min(nextStamina + staminaRegen * SECONDS_PER_TICK, maxStamina);
         }
@@ -102,19 +102,14 @@ public final class PlayerResourceTicker {
 
     /**
      * Live-state regen-pause predicates evaluated each tick. Composes with the
-     * persisted {@code staminaRegenDelayTicks} timer (post-exhaustion lockout +
-     * post-attack pause) — any of the four sources keeping regen suppressed is
-     * sufficient.
+     * persisted {@code staminaRegenDelayTicks} timer (post-exhaustion lockout,
+     * universal post-drain delay) at the call site — this method only answers
+     * for the live-state sources (ranged draw, underwater).
      */
     private static boolean shouldPauseStaminaRegen(Player player) {
-        if (Configs.GENERAL.rangedDrawPausesStaminaRegen.get()
-                && player.isUsingItem()
-                && player.getUseItem().getItem() instanceof ProjectileWeaponItem) {
-            return true;
-        }
-        if (Configs.GENERAL.underwaterPausesStaminaRegen.get() && player.isUnderWater()) {
-            return true;
-        }
-        return false;
+        return (Configs.GENERAL.rangedDrawPausesStaminaRegen.get()
+                    && player.isUsingItem()
+                    && player.getUseItem().getItem() instanceof ProjectileWeaponItem)
+                || (Configs.GENERAL.underwaterPausesStaminaRegen.get() && player.isUnderWater());
     }
 }
