@@ -20,9 +20,6 @@ dependencies {
         version { strictly '[0.3.4,)'; prefer '0.3.7-beta.1' }
     }
 
-    // Dynamic Difficulty
-    implementation "dev.muon.dynamic_difficulty:dynamic_difficulty-neoforge:${dynamic_difficulty_version}+${minecraft_version}"
-
     // Compats
     compileOnly "curse.maven:appleskin-248787:7854456"
     localRuntime "curse.maven:appleskin-248787:7854456"
