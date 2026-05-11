@@ -1,19 +1,16 @@
 # Combat Attributes
 
-*A clean set of RPG combat attributes for Minecraft, with diminishing returns on the stats that would otherwise spiral out of control.*
+### *Twenty-one* RPG combat attributes for Minecraft, centralized for easy usage by other mods.
 
-For Minecraft 26.1.2 (Fabric / NeoForge). Requires [FzzyConfig](https://modrinth.com/mod/fzzy-config).
+***Diminishing Returns** and other smart features built in!*
+- **For Minecraft 26.1.2 (Fabric / NeoForge).**
+- **Requires [FzzyConfig](https://modrinth.com/mod/fzzy-config)**
 
 ___
 
-# Features
+# Features:
 
-**Twenty-one** combat focused attributes, centralized for easy usage by other mods.
-*Diminishing Returns built in!*
-
-
-## Diminishing Returns
-
+## Diminishing Returns:
 
 > [!IMPORTANT]
 > ### How do Diminishing Returns Work?
@@ -24,7 +21,7 @@ ___
 >
 > `LINEAR` skips diminishing entirely. The three modifier operations (`ADD_VALUE`, `ADD_MULTIPLIED_BASE`, `ADD_MULTIPLIED_TOTAL`) each diminish independently, so addons can't dodge the cap by switching op type.
 
-## Attributes:
+## Attributes Included:
 
 | Attribute            | Description                                                                      | Default | Diminishing Returns? | Per source cap |
 |----------------------|----------------------------------------------------------------------------------|---------|----------------------|----------------|
@@ -50,19 +47,19 @@ ___
 | `mana_cost`          | Multiplier on mana costs paid by abilities                                       | 100%    | Yes                  | -30%           |
 | `experience_gain`    | Multiplier on XP awarded to your XP bar from experience orbs                     | 100%    | No                   | none           |
 
-### Legacy Hunger system:
+## Legacy Hunger system:
 - Option to **disable vanilla hunger** entirely, to use the stamina system instead *(But you can use both if you want)*
 - When Legacy Hunger is enabled, all food instead **restores health**, with a heart amount based on its nutrition and saturation values
 - The conversion from food/saturation into hearts restored is configurable!
 
-### Default HUD Bars, Dynamic Resource Bars compatibility:
+## Default HUD Bars, Dynamic Resource Bars compatibility:
 [Example gifs TODO]
 
 
 ### Compatible with Appleskin! 
 [Appleskin Compat]
 
-### Configuration
+## Configuration
 
 All attribute presets are fully customizable, server-side and synced to clients (using FzzyConfig):
 
