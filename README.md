@@ -76,12 +76,16 @@ Each attribute can configure:
 
 > [!IMPORTANT]
 > ### How do Diminishing Returns Work?
-> Each modifier source is squeezed by `min(x, M*x/(x+k))` (per source cap `M`, half-saturation `k`), then sources combine based on the attribute's `stackingMode`:
-> - `SOFT_CAP`: sources sum. Use for additive bonuses like crit damage. *Example:* with `melee_crit_damage` (M=+100%, k=40%), a +50% modifier passes through linearly; a raw +200% bends to ~+83%, asymptoting toward +100% — the per source ceiling.
-> - `MULTIPLICATIVE`: reductions diminish per source, then combine multiplicatively via `(1-a)(1-b)...`. Use for "lower is better" multipliers like `stamina_cost`. *Example:* two -20% reductions stack to -36% (not -40%) — each discount applies on top of the previous.
-> - `PROBABILISTIC`: sources combine via `1 - (1-a)(1-b)...`. Use for chance stats (crit chance, evasion, accuracy). *Example:* two 40% crit chance sources stack to 64%, three to 78.4% — each additional source is worth less than the last.
+> Every source is "soft-capped", then combine based on the attribute's `stackingMode`:
+> - `SOFT_CAP`: Separate sources add normally; only individual sources have a soft cap. Used for crit damage.
+> - - *Example:* A mod wants to provide a stat or a potion effect that grants crit damage per level, without ever having absurd values
+> - - A +50% modifier is unchanged; but a single source of +200% only actually grants ~+83%, asymptoting toward +100% (the per source ceiling)
+> - `MULTIPLICATIVE`: Typically used for "reduction" stats (stamina_cost, mana_cost)"
+> - - *Example:* two -20% modifiers stack to -36% (not -40%)
+> - `PROBABILISTIC`: Typically used for chance stats (crit chance, evasion, accuracy).
+> - - *Example:* two 40% crit chance sources stack to 64%, three to 78.4%.
 >
-> `LINEAR` skips diminishing entirely. The three modifier operations (`ADD_VALUE`, `ADD_MULTIPLIED_BASE`, `ADD_MULTIPLIED_TOTAL`) each diminish independently, so addons can't dodge the cap by switching op type.
+> `LINEAR` means the attribute has no diminishing returns
 
 ___
 
