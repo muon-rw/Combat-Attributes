@@ -5,6 +5,7 @@
 ***Diminishing Returns** and other smart features built in!*
 - **For Minecraft 26.1.2 (Fabric / NeoForge).**
 - **Requires [FzzyConfig](https://modrinth.com/mod/fzzy-config)**
+- **Highly Recommended: [Dynamic Resource Bars](https://www.curseforge.com/minecraft/mc-mods/dynamic-rpg-resource-bars)** 
 
 ___
 
