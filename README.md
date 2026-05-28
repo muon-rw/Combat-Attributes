@@ -1,8 +1,8 @@
 # Combat Attributes
 
-### *Twenty-one* RPG combat attributes for Minecraft, centralized for easy usage by other mods.
+### *Twenty-one* RPG combat attributes for Minecraft, centralized for easy usage by other mods
 
-***Diminishing Returns** and other smart features built in!*
+***Diminishing Returns** and other neat features built in!*
 - **For Minecraft 26.1.2 (Fabric / NeoForge).**
 - **Requires [FzzyConfig](https://modrinth.com/mod/fzzy-config)**
 
@@ -37,9 +37,9 @@ ___
 | `experience_gain`    | Multiplier on XP awarded to your XP bar from experience orbs                     | 100%    | No                   | none           |
 
 ## Legacy Hunger system:
-- Option to **disable vanilla hunger** entirely, to use the stamina system instead *(But you can use both if you want)*
-- When Legacy Hunger is enabled, all food instead **restores health**, with a heart amount based on its nutrition and saturation values
-- The conversion from food/saturation into hearts restored is configurable!
+- Option to **disable vanilla hunger** entirely, relying on the stamina system instead *(but you can use both if you want!)*
+- When Legacy Hunger is enabled, all food **restores health** instead, based on its nutrition and saturation values
+- The conversion from food/saturation into hearts is configurable!
 
 ## Default HUD Bars, Dynamic Resource Bars compatibility:
 [Example gifs TODO]
