@@ -77,9 +77,9 @@ Each attribute can configure:
 > [!IMPORTANT]
 > ### How do Diminishing Returns Work?
 > Every source is "soft-capped", then combine based on the attribute's `stackingMode`:
-> - `SOFT_CAP`: Separate sources add normally; only individual sources have a soft cap. Used for crit damage.
+> - `SOFT_CAP` (only): Separate sources add normally; only individual sources have a soft cap. Used for crit damage by default.
 > - - *Example:* A mod wants to provide a stat or a potion effect that grants crit damage per level, without ever having absurd values
-> - - A +50% modifier is unchanged; but a single source of +200% only actually grants ~+83%, asymptoting toward +100% (the per source ceiling)
+> - - A +50% modifier is unchanged; but a much higher single source, like a skill granting 2% per level at level 100, instead of +200% gives... ~+83%! Future levels diminish toward +100% (the default per source ceiling)
 > - `MULTIPLICATIVE`: Typically used for "reduction" stats (stamina_cost, mana_cost)"
 > - - *Example:* two -20% modifiers stack to -36% (not -40%)
 > - `PROBABILISTIC`: Typically used for chance stats (crit chance, evasion, accuracy).
