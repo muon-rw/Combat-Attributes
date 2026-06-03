@@ -10,7 +10,7 @@ import squeek.appleskin.api.event.TooltipOverlayEvent;
 /**
  * NeoForge AppleSkin hooks. Replaces AppleSkin's tooltip food/saturation overlay with hearts and,
  * when legacy-hunger is on, suppresses the HUD overlays AppleSkin draws on top of the (now hidden)
- * vanilla hunger bar — held-food preview, saturation overlay, exhaustion overlay.
+ * vanilla hunger bar: held-food preview, saturation overlay, exhaustion overlay.
  * {@link HUDOverlayEvent.HealthRestored} is intentionally left alone: it's the held-food heart
  * preview, which under legacy-hunger reflects {@link LegacyHunger#computeHeal} via
  * {@code FoodHelperMixin} and stays visible.

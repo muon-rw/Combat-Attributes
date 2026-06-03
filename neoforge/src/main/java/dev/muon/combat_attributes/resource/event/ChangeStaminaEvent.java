@@ -7,7 +7,7 @@ import net.neoforged.neoforge.common.NeoForge;
 
 /**
  * Posted on {@link NeoForge#EVENT_BUS} whenever a player's stamina value is
- * about to change — gameplay consumption, passive regen, and "current pulled
+ * about to change: gameplay consumption, passive regen, and "current pulled
  * down to max" reconciliations all fire this. Listeners can mutate the new
  * value or cancel the change outright.
  *
@@ -19,7 +19,7 @@ import net.neoforged.neoforge.common.NeoForge;
  * write entirely; the dispatcher returns {@link #getOldValue()} regardless of
  * any {@link #setNewValue(float)} calls. Listeners registered with
  * {@code receiveCanceled = true} that read {@link #getNewValue()} after a peer
- * has cancelled will see the unmodified pre-cancel target — cancellation does
+ * has cancelled will see the unmodified pre-cancel target; cancellation does
  * not reset it.
  */
 public final class ChangeStaminaEvent extends Event implements ICancellableEvent {

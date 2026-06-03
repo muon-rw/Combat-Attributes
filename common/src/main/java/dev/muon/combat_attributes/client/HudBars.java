@@ -14,10 +14,10 @@ import net.minecraft.world.entity.player.Player;
  * pip-drawing routine and one visibility predicate; only the layer registration
  * differs (see {@code HudBarsFabric} / {@code HudBarsNeoforge}).
  *
- * <p>Each bar shows 10 pips, vanilla hunger-row sized (9×9 px sprites, stride
- * 8 px, right-aligned to {@code guiWidth/2 + 91}). The pip count represents the
- * pool's fill ratio — 1 pip = 10% of max — so a 200-max stamina bar reads the
- * same as a 20-max one. Each pip resolves to full / half / empty by mapping
+ * <p>Each bar shows 10 pips, vanilla hunger-row sized (9x9 px sprites, stride
+ * 8 px, right-aligned to {@code guiWidth/2 + 91}). Pip count is the pool's fill
+ * ratio (1 pip = 10% of max), so a 200-max stamina bar reads the same as a
+ * 20-max one. Each pip resolves to full / half / empty by mapping
  * {@code current/max} into 20 half-pips.
  *
  * <p>Element identifiers are exposed so the loader-specific registration can
@@ -25,8 +25,8 @@ import net.minecraft.world.entity.player.Player;
  * {@code RegisterGuiLayersEvent}) and lookup keys for Fabric's height registry.
  *
  * <p>Sprite paths match the existing {@code stamina.png} / {@code stamina_empty.png}
- * / {@code stamina_half.png} files under {@code assets/combat_attributes/textures/gui/sprites/hud/}
- * — atlas resolution picks them up automatically without a metadata file.
+ * / {@code stamina_half.png} files under {@code assets/combat_attributes/textures/gui/sprites/hud/};
+ * atlas resolution picks them up automatically without a metadata file.
  */
 public final class HudBars {
 

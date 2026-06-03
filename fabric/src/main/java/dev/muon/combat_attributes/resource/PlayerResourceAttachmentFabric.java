@@ -9,10 +9,13 @@ import net.minecraft.resources.Identifier;
 /**
  * Fabric attachment for {@link PlayerResourceData}.
  *
- * <p>Persistent (saved with the player NBT via the codec) and auto-synced to
- * the owning client on change. {@link AttachmentSyncPredicate#targetOnly()}
- * keeps the payload off other tracking clients — they have no need for a
- * given player's resource pool.
+ * <p>Persistent (saved with the player NBT via the codec) and synced to the owning
+ * client only ({@link AttachmentSyncPredicate#targetOnly()}): the precise, per-tick
+ * stream that drives that player's own HUD. <em>Other</em> players' pools reach a
+ * client through the throttled, event-driven resource-anchor packet plus client-side
+ * regen extrapolation (see {@code ResourceSync} / {@code ClientResourceExtrapolator}),
+ * not this attachment, so a crowd of regenerating players doesn't multiply per-tick
+ * traffic across every tracker.
  */
 public final class PlayerResourceAttachmentFabric {
 

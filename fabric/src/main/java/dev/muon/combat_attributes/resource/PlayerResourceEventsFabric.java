@@ -4,19 +4,20 @@ import dev.muon.combat_attributes.resource.event.ChangeStaminaCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 
 /**
- * Fabric server-side hooks for stamina/mana regen + the per-tick stamina
+ * Fabric server-side hooks for stamina/mana regen plus the per-tick stamina
  * consumers. Iterating online players in {@code END_SERVER_TICK} mirrors the
- * cadence Dynamic Difficulty uses for its per-player tick work — it runs once
+ * cadence Dynamic Difficulty uses for its per-player tick work: it runs once
  * per tick after entities have moved, so resource updates land in the
  * snapshot the next client packet sees.
  *
  * <p>Also registers the {@code stamina_cost} multiplier on
- * {@link ChangeStaminaCallback#EVENT} so every drain — first-party consumers,
- * ticker drains, and any third-party {@code setStamina} caller — picks up the
+ * {@link ChangeStaminaCallback#EVENT} so every drain (first-party consumers,
+ * ticker drains, and any third-party {@code setStamina} caller) picks up the
  * attribute through one shared listener rather than each call site reading
  * the multiplier itself.
  */
@@ -41,5 +42,10 @@ public final class PlayerResourceEventsFabric {
                 PlayerResourceTicker.onPlayerTick(player);
             }
         });
+
+        // Seed a client with a player's pool the moment it starts tracking them, so over-head bars /
+        // resource orbs have a value to extrapolate from without waiting for that player's next spend.
+        EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) ->
+                ResourceSync.sendAnchorTo(player, trackedEntity));
     }
 }

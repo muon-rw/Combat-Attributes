@@ -6,7 +6,11 @@ public final class PlayerResourceStoreNeoforge implements PlayerResourceStore {
 
     @Override
     public PlayerResourceData get(Player player) {
-        return player.getData(PlayerResourceAttachmentNeoforge.RESOURCES);
+        // getExistingDataOrNull, not getData: getData would store a DEFAULT record on a miss,
+        // flipping has() true for a not-yet-anchored remote player and defeating the client sync gate.
+        // This keeps get() a pure read, matching Fabric's getAttached.
+        PlayerResourceData data = player.getExistingDataOrNull(PlayerResourceAttachmentNeoforge.RESOURCES);
+        return data != null ? data : PlayerResourceData.DEFAULT;
     }
 
     @Override

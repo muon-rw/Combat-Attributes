@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * to every living entity, populating the holder map via {@link #put}.
  *
  * <p>How an attribute stacks is decided at registration time from
- * {@code AttributeSpec.stackingMode} — exposed in the config file as a per-attribute enum
+ * {@code AttributeSpec.stackingMode}, exposed in the config file as a per-attribute enum
  * ({@code LINEAR} / {@code SOFT_CAP} / {@code PROBABILISTIC}). Loader code reads it and
  * chooses the concrete attribute class: vanilla {@code RangedAttribute} for {@code LINEAR},
  * {@code DiminishingRangedAttribute} (or the percent variant on NeoForge) for the others.
@@ -83,6 +83,7 @@ public final class ModAttributes {
             Entry.percent("evasion",            () -> Configs.ATTRIBUTES.evasion,          100.0),
             Entry.percent("lifesteal",          () -> Configs.ATTRIBUTES.lifesteal,        100.0),
             Entry.flat   ("magic_defense",      () -> Configs.ATTRIBUTES.magicDefense),
+            Entry.flat   ("health_regeneration",() -> Configs.ATTRIBUTES.healthRegeneration),
             // Bow physics
             Entry.percent("draw_speed",         () -> Configs.ATTRIBUTES.drawSpeed,        100.0),
             Entry.percent("arrow_velocity",     () -> Configs.ATTRIBUTES.arrowVelocity,    100.0),
@@ -115,7 +116,7 @@ public final class ModAttributes {
     }
 
     /**
-     * Reads an attribute value safely — returns the attribute's intrinsic default if the
+     * Reads an attribute value safely. Returns the attribute's intrinsic default if the
      * entity's {@code AttributeSupplier} doesn't include this attribute, instead of
      * throwing. Use this anywhere this mod's code reads its own attributes off a
      * LivingEntity that might predate the attribute's registration (e.g. a saved entity
@@ -139,6 +140,7 @@ public final class ModAttributes {
     public static Holder<Attribute> evasion()          { return get("evasion"); }
     public static Holder<Attribute> lifesteal()        { return get("lifesteal"); }
     public static Holder<Attribute> magicDefense()     { return get("magic_defense"); }
+    public static Holder<Attribute> healthRegeneration() { return get("health_regeneration"); }
     public static Holder<Attribute> drawSpeed()        { return get("draw_speed"); }
     public static Holder<Attribute> arrowVelocity()    { return get("arrow_velocity"); }
     public static Holder<Attribute> accuracy()         { return get("accuracy"); }

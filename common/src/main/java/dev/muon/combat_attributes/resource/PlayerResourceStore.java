@@ -13,12 +13,16 @@ import net.minecraft.world.entity.player.Player;
  */
 public interface PlayerResourceStore {
 
-    /** Returns the player's current data, or {@link PlayerResourceData#DEFAULT} if unset. */
+    /**
+     * Returns the player's current data, or {@link PlayerResourceData#DEFAULT} if unset. Must be a pure read:
+     * implementations must NOT create/store/sync a record on a miss, so {@link #has(Player)} stays an honest
+     * "has a record ever been written/received" probe; the client-side sync gate depends on that.
+     */
     PlayerResourceData get(Player player);
 
     /**
      * Writes the player's data. Persistence and sync to the owning client are
-     * handled by the underlying attachment — both loaders auto-sync on
+     * handled by the underlying attachment; both loaders auto-sync on
      * {@code setData}/{@code setAttached}.
      */
     void set(Player player, PlayerResourceData data);

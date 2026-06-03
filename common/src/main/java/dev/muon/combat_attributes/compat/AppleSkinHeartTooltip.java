@@ -14,8 +14,8 @@ import net.minecraft.world.food.FoodProperties;
  *
  * <p>Loader entry points hook {@code TooltipOverlayEvent.Render}, then call {@link #draw} at the
  * (x, y) AppleSkin computed for its overlay and cancel the event so AppleSkin's vanilla pip
- * rendering is suppressed. AppleSkin's two relevant config toggles —
- * {@code showFoodValuesInTooltip} (Shift-to-show) and {@code showFoodValuesInTooltipAlways} —
+ * rendering is suppressed. AppleSkin's two relevant config toggles
+ * ({@code showFoodValuesInTooltip}, Shift-to-show, and {@code showFoodValuesInTooltipAlways})
  * gate whether AppleSkin fires {@code Render} at all, so listening at {@code Render} inherits
  * both behaviors automatically without us reading AppleSkin's config directly.
  */

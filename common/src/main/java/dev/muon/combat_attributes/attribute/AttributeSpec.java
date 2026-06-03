@@ -10,9 +10,9 @@ import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
  *
  * <p>{@link #defaultValue} / {@link #minValue} / {@link #maxValue} are baked into the
  * underlying attribute at registration time, so changes there require a restart.
- * {@link #stackingMode} is also baked at startup — picking the concrete attribute class
- * (vanilla {@code RangedAttribute} for {@link StackingMode#LINEAR}, or a
- * {@link DiminishingAttribute} variant otherwise) — so that field also requires a restart.
+ * {@link #stackingMode} is also baked at startup (it picks the concrete attribute class:
+ * vanilla {@code RangedAttribute} for {@link StackingMode#LINEAR}, or a
+ * {@link DiminishingAttribute} variant otherwise), so that field also requires a restart.
  * {@link #softCap} and {@link #halfSaturation} are read on every value calculation, so
  * tuning those propagates live.
  *
@@ -20,7 +20,7 @@ import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
  * transformed via {@code min(x, M*x/(x+k))} where {@code M = softCap} (per-operation
  * asymptote, the most a single operation can contribute) and {@code k = halfSaturation}
  * (controls how soon diminishing kicks in). The {@code min} guarantees diminishing only
- * ever <em>reduces</em> modifier potency, never amplifies — small modifiers pass through
+ * ever <em>reduces</em> modifier potency, never amplifies: small modifiers pass through
  * linearly until the diminishing curve crosses below {@code x} at {@code x = M - k}, after
  * which it asymptotes toward {@code M}. So a +1% crit chance modifier on an attribute with
  * {@code M=0.4, k=0.05} contributes 1%, not the 6.7% the raw {@code M*x/(x+k)} curve would
@@ -38,14 +38,14 @@ import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
  *   <li>{@link StackingMode#MULTIPLICATIVE}: {@code base · (1-r_add)·(1-r_mulBase)·(1-r_mulTotal)}
  *       for the buff direction (negative modifier sums), with each {@code r_i} being the
  *       diminished reduction. Increases (positive sums) pass through linearly as factor
- *       {@code (1 + sum)}. The buff sign is flipped vs. the other diminishing modes —
+ *       {@code (1 + sum)}. The buff sign is flipped vs. the other diminishing modes:
  *       reductions are the soft-capped path here, since this mode targets multipliers
  *       like mana cost where lower is better. Per-slot cap is {@code M} (max reduction
  *       fraction); stacks via {@code 1 - Π(1-r_i)} on the reduction, equivalent to
  *       multiplicative stacking on the cost factor (two 30% sources → 51% reduction).</li>
  * </ul>
  *
- * <p>Diminishing applies to all three modifier operations the same way — there is no
+ * <p>Diminishing applies to all three modifier operations the same way; there is no
  * "vanilla bypass" for {@code ADD_MULTIPLIED_BASE} or {@code ADD_MULTIPLIED_TOTAL}.
  * That is intentional: addons or items shouldn't be able to push a chance attribute past
  * the per-source cap by switching operation type. Within a non-LINEAR stacking mode,
@@ -54,28 +54,25 @@ import me.fzzyhmstrs.fzzy_config.validation.number.ValidatedDouble;
  */
 public class AttributeSpec extends ConfigSection {
 
-    @Comment("Base value applied to every living entity by default. Baked at startup; restart to apply changes.")
+    @Comment("Base value given to every living entity. Restart to apply.")
     public ValidatedDouble defaultValue;
 
-    @Comment("Hard minimum the attribute clamps to. Baked at startup; restart to apply changes.")
+    @Comment("Hard minimum the value clamps to. Restart to apply.")
     public ValidatedDouble minValue;
 
-    @Comment("Hard maximum the attribute clamps to. Baked at startup; restart to apply changes.")
+    @Comment("Hard maximum the value clamps to. Restart to apply.")
     public ValidatedDouble maxValue;
 
-    @Comment("How modifiers stack. LINEAR = vanilla math (no soft cap). SOFT_CAP = additive with per-operation soft cap, " +
-            "for damage multipliers. PROBABILISTIC = probabilistic union with per-operation soft cap, for chance attributes. " +
-            "Baked at startup; restart to apply changes.")
+    @Comment("How modifiers stack. LINEAR = vanilla, no cap. SOFT_CAP = diminishing returns, for damage-style stats. " +
+            "PROBABILISTIC = diminishing returns, for chance stats (crit, dodge). Restart to apply.")
     public ValidatedEnum<StackingMode> stackingMode;
 
-    @Comment("Per-operation asymptote (M in M*x/(x+k)). The most a single operation slot can contribute. " +
-            "For PROBABILISTIC chance attrs, set this to the desired per-source probability cap (e.g. 0.4 = 40%). " +
-            "Inert when stackingMode = LINEAR. Read live; tune freely.")
+    @Comment("Soft cap on how much a single source can add. For PROBABILISTIC, this is the per-source chance cap " +
+            "(0.4 = 40%). Ignored when LINEAR. Applies live.")
     public ValidatedDouble softCap;
 
-    @Comment("Diminishing shape parameter (k in M*x/(x+k)). Small modifiers pass through linearly; diminishing kicks " +
-            "in at x = M - k and the curve asymptotes to M from there. Smaller k = diminishing kicks in earlier and " +
-            "the asymptote is approached faster. Inert when stackingMode = LINEAR. Read live; tune freely.")
+    @Comment("Controls how fast diminishing returns kick in. Smaller = kicks in sooner. " +
+            "Ignored when LINEAR. Applies live.")
     public ValidatedDouble halfSaturation;
 
     public AttributeSpec() {
@@ -85,7 +82,7 @@ public class AttributeSpec extends ConfigSection {
 
     public AttributeSpec(double defaultValue, double minValue, double maxValue,
                          StackingMode mode, double softCap, double halfSaturation) {
-        // ValidatedDouble(default, max, min) — note FzzyConfig's argument order.
+        // ValidatedDouble(default, max, min): FzzyConfig's argument order.
         this.defaultValue = new ValidatedDouble(defaultValue, 1_000_000.0, -1_000_000.0);
         this.minValue = new ValidatedDouble(minValue, 1_000_000.0, -1_000_000.0);
         this.maxValue = new ValidatedDouble(maxValue, 1_000_000.0, -1_000_000.0);
@@ -103,8 +100,8 @@ public class AttributeSpec extends ConfigSection {
     public double combineAll(double base, double addRaw, double mulBaseRaw, double mulTotalRaw) {
         StackingMode mode = stackingMode.get();
         if (mode == StackingMode.LINEAR) {
-            // Should not normally be hit (LINEAR attrs don't implement DiminishingAttribute and
-            // therefore skip the mixin path), but kept here as a sane fallback.
+            // Shouldn't normally be hit (LINEAR attrs don't implement DiminishingAttribute and
+            // skip the mixin path), but kept as a sane fallback.
             return base + addRaw + mulBaseRaw * base + mulTotalRaw * (base + addRaw);
         }
         if (mode == StackingMode.MULTIPLICATIVE) {
@@ -137,14 +134,14 @@ public class AttributeSpec extends ConfigSection {
         return softCapped(sum);
     }
 
-    /** Inverse-sign analog of {@link #diminishOp} for {@link StackingMode#MULTIPLICATIVE}: reductions diminish, increases pass through linearly. */
+    /** Inverse-sign analog of {@link #diminishOp} for {@link StackingMode#MULTIPLICATIVE}: reductions diminish; increases pass through linearly. */
     private double multiplicativeFactor(double sum) {
         if (sum >= 0.0) return 1.0 + sum;
         return 1.0 - softCapped(-sum);
     }
 
     private double softCapped(double r) {
-        // min() guarantees diminishing never amplifies — the linear ramp x dominates until it
+        // min() guarantees diminishing never amplifies: the linear ramp x dominates until it
         // crosses M*x/(x+k) at x = M - k, after which the diminishing curve takes over.
         double m = softCap.get();
         double k = halfSaturation.get();

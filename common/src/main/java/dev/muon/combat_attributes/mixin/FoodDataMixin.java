@@ -19,12 +19,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  *       preview keeps rendering even when the underlying field is at max.</li>
  *   <li>{@link FoodData#needsFood} always reports true, so non-{@code canAlwaysEat} foods stay
  *       eligible to consume regardless of the underlying foodLevel. Vanilla's read is
- *       {@code foodLevel < 20} against the field directly, bypassing the getter — and AppleSkin's
+ *       {@code foodLevel < 20} against the field directly, bypassing the getter, and AppleSkin's
  *       held-food preview gates on this through {@code Player.canEat}, so without the override
  *       the heart preview never renders for normal foods at full hunger.</li>
  *   <li>{@link FoodData#tick} is short-circuited. The vanilla tick reads {@code foodLevel} and
  *       {@code saturationLevel} as fields (bypassing our getter), so it would still apply natural
- *       regen at high field values and starvation damage at zero — the on-eat heal already
+ *       regen at high field values and starvation damage at zero; the on-eat heal already
  *       handles healing, and the food field is meaningless under legacy-hunger.</li>
  * </ul>
  */

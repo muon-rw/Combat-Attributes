@@ -5,21 +5,15 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * Fabric callback fired whenever a player's mana value is about to change —
- * gameplay consumption, passive regen, and "current pulled down to max"
- * reconciliations all invoke this. Listeners can mutate the new value or
- * cancel the change outright.
+ * Fired whenever a player's mana is about to change (consumption, regen, or a
+ * clamp-down to max). Listeners can mutate the new value or cancel the change.
  *
- * <p>Fired only on the logical server, before the attachment write. The new
- * value is re-clamped into {@code [0, getMaxMana]} after listeners run, so a
- * listener cannot push the pool above max via this hook.
+ * <p>Server-side only, before the attachment write. The result is re-clamped into
+ * {@code [0, getMaxMana]} after listeners run, so a listener can't push past max.
  *
- * <p>The callback threads the new value through the listener chain — each
- * listener receives the value the previous listener returned. Return
- * {@code oldValue} to cancel the change (no write happens). The first listener
- * that cancels short-circuits the chain so a later listener cannot silently
- * un-cancel by returning a different value, mirroring NeoForge's
- * default-skip-after-cancel behavior.
+ * <p>Listeners are chained: each sees the value the previous one returned. Return
+ * {@code oldValue} to cancel; the first cancel short-circuits the rest, so a later
+ * listener can't un-cancel. Mirrors NeoForge's default-skip-after-cancel.
  */
 @FunctionalInterface
 public interface ChangeManaCallback {

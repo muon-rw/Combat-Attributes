@@ -11,7 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * <p>Kept as a single record rather than two separate attachments so a single
  * sync packet delivers the whole picture and there's no inter-attachment
- * ordering risk on client load — same convention as Chronicles Leveling's
+ * ordering risk on client load. Same convention as Chronicles Leveling's
  * {@code PlayerLevelData}.
  *
  * <p>Maxes and regen rates are read from {@link dev.muon.combat_attributes.attribute.ModAttributes}
@@ -21,8 +21,8 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * <p>{@code staminaRegenDelayTicks} counts down each server tick while greater
  * than zero, gating stamina regen during that window. Set whenever a write
- * brings stamina from a positive value to exactly zero — the recovery delay
- * after exhaustion. Mana has no equivalent.
+ * brings stamina from a positive value to exactly zero (the recovery delay
+ * after exhaustion). Mana has no equivalent.
  */
 public record PlayerResourceData(float stamina, float mana, int staminaRegenDelayTicks) {
 

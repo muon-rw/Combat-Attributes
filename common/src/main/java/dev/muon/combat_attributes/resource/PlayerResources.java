@@ -10,26 +10,25 @@ import net.minecraft.world.entity.player.Player;
  *
  * <p>Routes through {@link Services#PLATFORM} so common code stays loader-agnostic.
  * Both loaders' attachments auto-sync to the owning client on write, so callers
- * don't need to dispatch packets manually.
+ * don't dispatch packets manually.
  *
- * <p>Read methods always clamp into {@code [0, max]} on the way out so callers
- * never see a stale "current > max" if the player's max attribute dropped after
- * the last write.
+ * <p>Read methods clamp into {@code [0, max]} on the way out so callers never see
+ * a stale "current > max" after the player's max attribute dropped.
  *
  * <p>Every write path dispatches the loader-native {@code ChangeStaminaEvent} /
  * {@code ChangeManaEvent} via {@link Services#PLATFORM} before committing, so
- * listeners can mutate or cancel the change. Listeners receive the raw caller
- * argument — values outside {@code [0, max]} are possible (a consumer that
- * tries to drain more stamina than the player has will pass a negative). The
- * returned value is re-clamped into {@code [0, max]} after listeners run, so
- * listeners cannot push the pool out of range through this hook; a no-op
- * result (listener returned {@code oldValue}) skips the write.
+ * listeners can mutate or cancel the change. Listeners get the raw caller
+ * argument, which can fall outside {@code [0, max]} (a consumer draining more
+ * stamina than the player has passes a negative). The returned value is
+ * re-clamped into {@code [0, max]} after listeners run, so they can't push the
+ * pool out of range through this hook; a no-op result (listener returned
+ * {@code oldValue}) skips the write.
  *
- * <p>Whenever a write brings stamina from positive down to exactly zero, the
+ * <p>When a write brings stamina from positive down to exactly zero, the
  * persisted {@code staminaRegenDelayTicks} is set from
  * {@link dev.muon.combat_attributes.config.ConfigGeneral#staminaEmptyRegenDelay}
- * so the regen ticker pauses recovery during the configured exhaustion window.
- * Mana writes never touch this field.
+ * so the regen ticker pauses recovery during the exhaustion window. Mana writes
+ * never touch this field.
  */
 public final class PlayerResources {
 
@@ -37,6 +36,15 @@ public final class PlayerResources {
 
     public static PlayerResourceData get(Player player) {
         return Services.PLATFORM.getPlayerResourceStore().get(player);
+    }
+
+    /**
+     * Whether a synced/stored resource record exists for {@code player}. On the client this distinguishes a player
+     * whose pool has arrived from one still reading {@link PlayerResourceData#DEFAULT}; callers that route by
+     * stamina/mana (over-head bars, resource orbs) should treat "no record yet" as "unknown", not "empty".
+     */
+    public static boolean hasResourceData(Player player) {
+        return Services.PLATFORM.getPlayerResourceStore().has(player);
     }
 
     public static float getStamina(Player player) {
@@ -64,7 +72,7 @@ public final class PlayerResources {
         return getStamina(player) > 0.0F;
     }
 
-    /** Mana counterpart to {@link #canSpendStamina(Player)}. No lockout — purely a {@code > 0} check. */
+    /** Mana counterpart to {@link #canSpendStamina(Player)}. No lockout, just a {@code > 0} check. */
     public static boolean canSpendMana(Player player) {
         return getMana(player) > 0.0F;
     }
@@ -73,9 +81,9 @@ public final class PlayerResources {
      * Atomically gate-and-spend the configured cost. Returns {@code true} if the player
      * had any stamina (the spend went through, possibly taking them to zero and arming
      * the lockout) or {@code false} if stamina was already exhausted (no spend happened
-     * and the caller should block its action). Costs of {@code <= 0} are treated as a
-     * trivial success — useful for "feature disabled" config values without a separate
-     * branch at every call site.
+     * and the caller should block its action). Costs of {@code <= 0} are a trivial
+     * success, handy for "feature disabled" config values without a branch at every
+     * call site.
      *
      * <p>Typical use:
      * <pre>{@code
@@ -112,6 +120,8 @@ public final class PlayerResources {
         PlayerResourceData finalData = new PlayerResourceData(resolved, current.mana(), delay);
         if (finalData.equals(current)) return;
         Services.PLATFORM.getPlayerResourceStore().set(player, finalData);
+        // A spend/drain is a perturbation the client can't predict; re-anchor its trackers.
+        ResourceSync.broadcastAnchor(player);
     }
 
     public static void setMana(Player player, float mana) {
@@ -120,6 +130,8 @@ public final class PlayerResources {
         float resolved = clamp(Services.PLATFORM.fireChangeMana(player, current.mana(), mana), getMaxMana(player));
         if (resolved == current.mana()) return;
         Services.PLATFORM.getPlayerResourceStore().set(player, current.withMana(resolved));
+        // A spend is a perturbation the client can't predict; re-anchor its trackers.
+        ResourceSync.broadcastAnchor(player);
     }
 
     /**
@@ -128,8 +140,8 @@ public final class PlayerResources {
      * the re-fetch a public setter would perform, but still dispatches the per-resource
      * change events and re-clamps any listener-mutated value.
      *
-     * <p>Trusts the caller's {@code next.staminaRegenDelayTicks()} as authoritative —
-     * lockout arming is the responsibility of the public depletion paths
+     * <p>Trusts the caller's {@code next.staminaRegenDelayTicks()} as authoritative;
+     * lockout arming is the job of the public depletion paths
      * ({@link #setStamina}, {@link #trySpendStamina}). The ticker decrements the timer
      * through this method without re-arming it.
      */
@@ -150,19 +162,19 @@ public final class PlayerResources {
 
     /**
      * Composes the next regen-delay value from the existing timer plus two arming
-     * sources. Both sources land via {@code max()} so neither shortens the other —
-     * draining to zero in one shot raises the timer to the heavier exhaustion
-     * lockout, not the lighter universal drain delay.
+     * sources. Both land via {@code max()} so neither shortens the other: draining
+     * to zero in one shot raises the timer to the heavier exhaustion lockout, not
+     * the lighter universal drain delay.
      *
      * <ul>
-     *   <li><b>{@code armDrainPause}</b> — every successful drain (post-listener
+     *   <li><b>{@code armDrainPause}</b>: every successful drain (post-listener
      *       resolved value lower than current) arms {@code staminaDrainRegenDelay}.
      *       Souls-like recovery window between expenditure and regen.</li>
-     *   <li><b>{@code armLockout}</b> — raw caller intent of "deplete to zero or
+     *   <li><b>{@code armLockout}</b>: raw caller intent of "deplete to zero or
      *       below" arms {@code staminaEmptyRegenDelay}. Uses raw intent rather than
-     *       post-listener value because the {@code stamina_cost} multiplier can
-     *       keep stamina from landing at exactly zero — without this, players in
-     *       that asymptotic regime would never trigger exhaustion.</li>
+     *       post-listener value because the {@code stamina_cost} multiplier can keep
+     *       stamina from landing at exactly zero; without this, players in that
+     *       asymptotic regime would never trigger exhaustion.</li>
      * </ul>
      */
     private static int nextStaminaRegenDelay(int proposedDelay, boolean armLockout, boolean armDrainPause) {

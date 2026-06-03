@@ -28,13 +28,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * {@link LivingEntity}-side hooks for three subsystems:
  *
  * <ul>
- *   <li><b>Use-item update</b> — combined draw_speed acceleration and per-tick
+ *   <li><b>Use-item update</b>: combined draw_speed acceleration and per-tick
  *       ranged stamina drain on {@code updateUsingItem}. They share a tick of
  *       {@code useItemRemaining} state, so they live in one inject to avoid
  *       intra-class injector ordering surprises.</li>
- *   <li><b>Jump</b> — stamina gate on {@code jumpFromGround} (which lives on
+ *   <li><b>Jump</b>: stamina gate on {@code jumpFromGround} (which lives on
  *       {@link LivingEntity} in this version, no {@link Player} override).</li>
- *   <li><b>Damage pipeline</b> — {@link DamageHandler}-driven evasion, ranged /
+ *   <li><b>Damage pipeline</b>: {@link DamageHandler}-driven evasion, ranged /
  *       crit modification, and lifesteal on {@code hurtServer}.</li>
  * </ul>
  */
@@ -53,15 +53,15 @@ public abstract class LivingEntityMixin {
      *       approximately {@code rangedDrawStaminaCost}, regardless of
      *       {@code draw_speed}. When stamina is in the post-exhaustion lockout, the
      *       attempt fails: the use is aborted via {@link Player#stopUsingItem()}
-     *       and the rest of this tick's update is cancelled. Past full charge —
-     *       20 ticks for {@link BowItem}, {@link CrossbowItem#getChargeDuration}
-     *       for crossbows, {@code getUseDuration} for mod ranged weapons — the
+     *       and the rest of this tick's update is cancelled. Past full charge
+     *       (20 ticks for {@link BowItem}, {@link CrossbowItem#getChargeDuration}
+     *       for crossbows, {@code getUseDuration} for mod ranged weapons) the
      *       drain stops; the regen-pause that pins stamina at its current level
      *       is applied separately by {@code PlayerResourceTicker} for as long as
      *       the player is using the item.</li>
      *   <li>{@code draw_speed} acceleration (any LivingEntity using
      *       {@link ProjectileWeaponItem} or {@link TridentItem}). Mirrors Apothic
-     *       Attributes' event-based handler — every full point adds one extra
+     *       Attributes' event-based handler: every full point adds one extra
      *       decrement per tick; partial points spread their extra across game ticks
      *       via {@code tickCount}-modulo gating. Negative values invert the sign to
      *       slow the timer down.</li>
@@ -103,7 +103,7 @@ public abstract class LivingEntityMixin {
     /**
      * Stamina gate for ground jumps. Drains {@code jumpStaminaCost} on success;
      * cancels the jump entirely when stamina is in the lockout window. Mob jumps
-     * (any non-{@link Player} {@link LivingEntity}) pass through untouched —
+     * (any non-{@link Player} {@link LivingEntity}) pass through untouched;
      * stamina attributes are player-only.
      */
     @Inject(method = "jumpFromGround", at = @At("HEAD"), cancellable = true)
@@ -121,11 +121,11 @@ public abstract class LivingEntityMixin {
     /**
      * Attribute hooks:
      * <ol>
-     *   <li>Evasion — if the victim dodges, skip the original method entirely (returns
+     *   <li>Evasion: if the victim dodges, skip the original method entirely (returns
      *       {@code false}; vanilla treats this as no damage applied).</li>
-     *   <li>Modify incoming damage — ranged flat bonus + crit multipliers per damage type.</li>
+     *   <li>Modify incoming damage: ranged flat bonus + crit multipliers per damage type.</li>
      *   <li>Call vanilla {@code hurtServer} with the modified amount.</li>
-     *   <li>Lifesteal — if vanilla returned {@code true} (damage applied) AND the attacker is
+     *   <li>Lifesteal: if vanilla returned {@code true} (damage applied) AND the attacker is
      *       within their {@code entity_interaction_range} of the victim, heal the attacker.</li>
      * </ol>
      */
@@ -163,7 +163,7 @@ public abstract class LivingEntityMixin {
      * {@link CrossbowItem#getChargeDuration} so the {@code quick_charge}
      * enchantment shortens the drain window proportionally. Mod ranged weapons
      * extending {@link ProjectileWeaponItem} fall back to their declared
-     * {@code getUseDuration} — which for vanilla-shaped items defaults to 72000
+     * {@code getUseDuration}, which for vanilla-shaped items defaults to 72000
      * and makes drain effectively a no-op, so a mod author who wants integration
      * can register a {@code ChangeStaminaEvent} listener of their own.
      */

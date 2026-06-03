@@ -8,10 +8,10 @@ import net.minecraft.world.damagesource.DamageType;
 /**
  * Damage type tags used by Combat Attributes' damage pipeline.
  *
- * <p>{@link #IS_MAGIC} is the conventional cross-mod {@code #c:is_magic} tag — populated by
- * spell mods (Iron's Spells, Apoli/Origins effect damage, etc.) to flag damage that should
- * be treated as magical. Vanilla doesn't ship this tag, but it's standard in the Fabric/Forge
- * ecosystem's {@code c} (Common) namespace.
+ * <p>{@link #IS_MAGIC} is the conventional cross-mod {@code #c:is_magic} tag, populated by
+ * spell mods (Iron's Spells, Apoli/Origins effect damage, etc.) to flag damage as magical.
+ * Vanilla doesn't ship it, but it's standard in the Fabric/Forge ecosystem's {@code c}
+ * (Common) namespace.
  */
 public final class CombatDamageTags {
 

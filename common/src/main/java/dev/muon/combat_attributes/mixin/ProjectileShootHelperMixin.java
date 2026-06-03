@@ -23,13 +23,13 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  *   <li><b>Factory overload</b> ({@code (ProjectileFactory, ServerLevel, ItemStack,
  *       LivingEntity source, ..., float pow, float uncertainty)}): used by Llama spit,
  *       Illusioner, Breeze, etc. Shooter comes from the explicit {@code source} arg,
- *       captured here via MixinExtras' {@code @Local(argsOnly = true)} — that avoids
+ *       captured here via MixinExtras' {@code @Local(argsOnly = true)}; that avoids
  *       overloading the handler with positional args, which seems to be what triggered
  *       NeoForge's "Scanned 0 target(s)" rejection on the prior unified version.</li>
  * </ul>
  *
- * <p>Player-driven {@code ProjectileWeaponItem#shoot} doesn't go through either overload
- * — it routes via {@code Projectile.spawnProjectile} (no {@code UsingShoot} suffix) and
+ * <p>Player-driven {@code ProjectileWeaponItem#shoot} doesn't go through either overload;
+ * it routes via {@code Projectile.spawnProjectile} (no {@code UsingShoot} suffix) and
  * is already covered by {@link ProjectileWeaponItemMixin}. So no double-application risk.
  */
 @Mixin(value = Projectile.class, remap = false)

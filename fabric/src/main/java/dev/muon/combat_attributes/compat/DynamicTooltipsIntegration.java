@@ -9,10 +9,10 @@ import net.minecraft.resources.Identifier;
  * Registers our percent-display attributes with Dynamic Tooltips on Fabric. Mirrors the
  * NeoForge story (where percent-flagged attributes will eventually extend
  * {@code PercentageAttribute} directly). Users can countermand any registration from their
- * own DT config — the API merges with user config, with config taking precedence.
+ * own DT config; the API merges with user config, with config taking precedence.
  *
  * <p>Reads the percent flag off {@link ModAttributes#ALL}, which is independent of
- * registration order — safe to call before or after attribute holders are populated.
+ * registration order, so it's safe to call before or after attribute holders are populated.
  */
 public final class DynamicTooltipsIntegration {
 

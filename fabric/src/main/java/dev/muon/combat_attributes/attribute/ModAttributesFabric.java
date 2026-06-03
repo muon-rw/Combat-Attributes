@@ -24,7 +24,7 @@ import java.util.Map;
  * {@code ModInitializer.onInitialize} entrypoint reach registration through
  * {@link #ensureInitialized()}, which is a no-op call that exists only to force
  * {@code <clinit>}. Whichever runs first wins; subsequent calls are no-ops because
- * the JVM runs {@code <clinit>} exactly once. The mixin call is defensive —
+ * the JVM runs {@code <clinit>} exactly once. The mixin call is defensive:
  * {@code getSupplier} is invoked at entity-construction time, well after
  * {@code onInitialize}, so in practice the entrypoint path always populates the
  * holder map first.
@@ -37,7 +37,7 @@ import java.util.Map;
 public final class ModAttributesFabric {
 
     static {
-        // Configs first — attribute constructors read default/min/max/stackingMode
+        // Configs first: attribute constructors read default/min/max/stackingMode
         // synchronously off the AttributeSpec. Configs.register() is idempotent.
         Configs.register();
         registerAll();
@@ -49,7 +49,7 @@ public final class ModAttributesFabric {
      * No-op trampoline. Calling it forces this class's {@code <clinit>}, which
      * registers every mod attribute exactly once. Called from
      * {@code ModInitializer.onInitialize} (the primary path) and from
-     * {@link #augment(AttributeSupplier, EntityType)} (defensive — {@code getSupplier} is
+     * {@link #augment(AttributeSupplier, EntityType)} (defensive; {@code getSupplier} is
      * not invoked before mod load completes, but the call is cheap).
      */
     public static void ensureInitialized() {}

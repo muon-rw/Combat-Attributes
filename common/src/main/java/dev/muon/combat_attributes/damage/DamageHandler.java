@@ -20,19 +20,19 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  *   <li><b>Ranged</b>: {@code is_projectile} AND NOT {@code c:is_magic} → ranged_damage flat
  *       bonus + ranged crit roll.</li>
  *   <li><b>Melee</b>: NOT {@code is_projectile} → melee crit roll. (A magic-tagged direct
- *       hit fires both magic and melee crit; per design that's allowed for now.)</li>
+ *       hit fires both magic and melee crit; allowed for now.)</li>
  * </ul>
  *
  * <p>All attribute reads route through {@link ModAttributes#valueOrDefault} so a
  * LivingEntity missing one of our attributes (stale supplier, oddly-registered subclass)
- * degrades to the attribute's default rather than crashing.
+ * degrades to the default instead of crashing.
  */
 public final class DamageHandler {
 
     private DamageHandler() {}
 
     /**
-     * Pre-damage roll — returns true if the victim dodges and the hit should be
+     * Pre-damage roll. Returns true if the victim dodges and the hit should be
      * cancelled outright. Uses the victim's RNG.
      */
     public static boolean shouldDodge(LivingEntity victim, DamageSource source) {
@@ -57,7 +57,7 @@ public final class DamageHandler {
             damage += (float) ModAttributes.valueOrDefault(attacker, ModAttributes.rangedDamage());
         }
 
-        // Crit rolls — independent per damage classification.
+        // Crit rolls, independent per damage classification.
         if (magic) {
             damage = rollCrit(attacker, damage,
                     ModAttributes.magicCritChance(), ModAttributes.magicCritDamage());
@@ -67,7 +67,7 @@ public final class DamageHandler {
                     ModAttributes.rangedCritChance(), ModAttributes.rangedCritDamage());
         }
         if (!projectile) {
-            // Melee covers any non-projectile direct attack — including magic-tagged direct hits.
+            // Melee covers any non-projectile direct attack, including magic-tagged direct hits.
             damage = rollCrit(attacker, damage,
                     ModAttributes.meleeCritChance(), ModAttributes.meleeCritDamage());
         }
@@ -82,7 +82,7 @@ public final class DamageHandler {
     }
 
     /**
-     * Post-damage hook — runs after vanilla {@code hurtServer} returned true (damage
+     * Post-damage hook; runs after vanilla {@code hurtServer} returned true (damage
      * was actually applied). Heals the attacker by {@code damage * lifesteal}, clamped
      * to attackers within their own {@code entity_interaction_range} of the victim.
      */

@@ -9,8 +9,8 @@ import java.util.function.Supplier;
  * Central access point and registration hook for the mod's FzzyConfig instances.
  *
  * <ul>
- *   <li>{@link #GENERAL}   — {@link RegisterType#BOTH}: server-authoritative, synced to clients</li>
- *   <li>{@link #ATTRIBUTES}   — {@link RegisterType#BOTH}: server-authoritative, synced to clients</li>
+ *   <li>{@link #GENERAL}: {@link RegisterType#BOTH}, server-authoritative, synced to clients</li>
+ *   <li>{@link #ATTRIBUTES}: {@link RegisterType#BOTH}, server-authoritative, synced to clients</li>
  * </ul>
  *
  * <p>After {@link #register()} runs, read values anywhere via e.g.

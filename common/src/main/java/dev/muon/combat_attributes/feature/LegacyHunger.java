@@ -15,8 +15,8 @@ import net.minecraft.world.food.FoodProperties;
  *
  * <p>{@link #computeHeal(int, float)} rounds to whole half-hearts so external integrations
  * (AppleSkin tooltip and HUD held-food preview) and the actual heal amount agree on a single
- * integer count — pre-rounding, the tooltip and HUD diverged because they used different rounding
- * modes on the same float.
+ * integer count. Before rounding, the tooltip and HUD diverged because they used different
+ * rounding modes on the same float.
  */
 public final class LegacyHunger {
 
@@ -28,7 +28,7 @@ public final class LegacyHunger {
 
     /**
      * Half-hearts of healing for a food with the given nutrition + saturation. Returned regardless
-     * of whether the feature is currently enabled — callers that want the active value should gate
+     * of whether the feature is currently enabled; callers that want the active value should gate
      * on {@link #isEnabled()} themselves. AppleSkin compat can call this unconditionally to render
      * the heart preview the same way the runtime applies it.
      */

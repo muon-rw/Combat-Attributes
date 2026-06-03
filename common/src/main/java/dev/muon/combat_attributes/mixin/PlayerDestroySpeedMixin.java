@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * <p>Vanilla's own {@code MINING_FATIGUE} effect applies a similar multiplier
  * inside {@code Player#getDestroySpeed} (0.3 / 0.09 / 0.0027 / 8.1E-4 by amplifier).
  * Hooking with {@link ModifyReturnValue} at {@code RETURN} lets us layer on top of
- * any in-method scaling — vanilla mining fatigue stacks multiplicatively. Reading
+ * any in-method scaling; vanilla mining fatigue stacks multiplicatively. Reading
  * stamina via {@link PlayerResources} works on both client and server because the
  * resource attachment is auto-synced; {@code getDestroySpeed} is called on both
  * sides during break progress prediction so this needs to apply symmetrically.

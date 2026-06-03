@@ -6,9 +6,9 @@ import net.minecraft.world.entity.player.Player;
 /**
  * Common helper for the {@code stamina_cost} attribute multiplier. Each
  * loader registers a listener on its native {@code ChangeStamina} event /
- * callback that delegates here, so all stamina drains — first-party
- * consumers, third-party consumers, and the regen-tick continuous drains
- * alike — pick up the multiplier through the same single code path.
+ * callback that delegates here, so all stamina drains (first-party consumers,
+ * third-party consumers, and the regen-tick continuous drains alike) pick up
+ * the multiplier through the same single code path.
  *
  * <p>Only negative deltas (drains) are scaled. Positive deltas (regen,
  * heals, max-attribute bumps) and no-ops pass through unchanged. The
