@@ -18,7 +18,6 @@ public final class ResourceNetworkFabric {
 
     private ResourceNetworkFabric() {}
 
-    /** Both environments: declare the clientbound payload so it can be sent and decoded. */
     public static void register() {
         PayloadTypeRegistry.clientboundPlay().register(ResourceAnchorPayload.TYPE, ResourceAnchorPayload.CODEC);
     }

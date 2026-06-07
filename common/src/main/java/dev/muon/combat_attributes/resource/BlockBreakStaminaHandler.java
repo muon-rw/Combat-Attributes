@@ -23,7 +23,7 @@ public final class BlockBreakStaminaHandler {
 
     private BlockBreakStaminaHandler() {}
 
-    public static void onBreakAttempt(Player player) {
+    public static void applyBreakCost(Player player) {
         float cost = Configs.GENERAL.blockBreakStaminaCost.get().floatValue();
         if (cost <= 0.0F) return;
         if (player.level().isClientSide()) return;

@@ -12,9 +12,6 @@ import net.minecraft.resources.Identifier;
 /**
  * Server-authoritative configuration for every Combat Attributes attribute. Loaded as
  * {@link me.fzzyhmstrs.fzzy_config.api.RegisterType#BOTH} so client and server stay in sync.
- * Per-attribute fields: {@code default} / {@code min} / {@code max}, a {@code stackingMode}
- * ({@link StackingMode#LINEAR} / {@link StackingMode#SOFT_CAP} / {@link StackingMode#PROBABILISTIC}),
- * and soft-cap parameters {@code softCap} (M) and {@code halfSaturation} (k).
  *
  * <p>The end-user-facing explanation of M, k, and how operation slots combine lives in the
  * {@link TomlHeaderComment} annotations below; they're rendered into the generated TOML so
@@ -97,7 +94,7 @@ public class ConfigAttributes extends Config {
     public AttributeSpec magicDefense = new AttributeSpec(0.0, 0.0, 30.0, StackingMode.LINEAR, 0.0, 1.0);
 
     @Comment("Health regenerated per second on any living entity below max health (no hunger or delay gating). Linear.")
-    public AttributeSpec healthRegeneration = new AttributeSpec(0.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
+    public AttributeSpec healthRegen = new AttributeSpec(0.0, 0.0, 10000.0, StackingMode.LINEAR, 0.0, 1.0);
 
     // --- Bow physics ---
 

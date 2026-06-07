@@ -9,11 +9,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-/**
- * Client-side pump for the resource extrapolator on NeoForge: advances tracked
- * players' pools each client tick (Fabric's {@code END_CLIENT_TICK} counterpart)
- * and drops stashed anchors on disconnect.
- */
 @EventBusSubscriber(modid = CombatAttributes.MOD_ID, value = Dist.CLIENT)
 public final class ClientResourceEventsNeoforge {
 

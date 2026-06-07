@@ -9,25 +9,6 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
-/**
- * Common HUD rendering for stamina + mana bars. Both loaders share one
- * pip-drawing routine and one visibility predicate; only the layer registration
- * differs (see {@code HudBarsFabric} / {@code HudBarsNeoforge}).
- *
- * <p>Each bar shows 10 pips, vanilla hunger-row sized (9x9 px sprites, stride
- * 8 px, right-aligned to {@code guiWidth/2 + 91}). Pip count is the pool's fill
- * ratio (1 pip = 10% of max), so a 200-max stamina bar reads the same as a
- * 20-max one. Each pip resolves to full / half / empty by mapping
- * {@code current/max} into 20 half-pips.
- *
- * <p>Element identifiers are exposed so the loader-specific registration can
- * use them as both element IDs (for {@code HudElementRegistry} /
- * {@code RegisterGuiLayersEvent}) and lookup keys for Fabric's height registry.
- *
- * <p>Sprite paths match the existing {@code stamina.png} / {@code stamina_empty.png}
- * / {@code stamina_half.png} files under {@code assets/combat_attributes/textures/gui/sprites/hud/};
- * atlas resolution picks them up automatically without a metadata file.
- */
 public final class HudBars {
 
     public static final Identifier STAMINA_ELEMENT = Identifier.fromNamespaceAndPath(CombatAttributes.MOD_ID, "stamina_bar");
@@ -86,11 +67,8 @@ public final class HudBars {
                 MANA_FULL_SPRITE, MANA_HALF_SPRITE, MANA_EMPTY_SPRITE);
     }
 
-    /**
-     * Renders a 10-pip status bar at {@code (xRight, yLineBase)} matching the
-     * vanilla hunger row's geometry. Pips fill right-to-left to mirror the
-     * hunger bar, which the player's eye expects to drain from the left edge.
-     */
+    // Maps current/max into 20 half-pips so a 200-max bar reads like a 20-max one.
+    // Pips fill right-to-left to mirror the hunger bar, which drains from the left edge.
     private static void renderBar(GuiGraphicsExtractor graphics, int xRight, int yLineBase,
                                   float current, float max,
                                   Identifier full, Identifier half, Identifier empty) {
@@ -103,13 +81,13 @@ public final class HudBars {
         }
         RenderPipeline pipeline = RenderPipelines.GUI_TEXTURED;
         for (int i = 0; i < PIPS; i++) {
-            int xo = xRight - i * PIP_STRIDE - SPRITE_SIZE;
-            graphics.blitSprite(pipeline, empty, xo, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
+            int pipX = xRight - i * PIP_STRIDE - SPRITE_SIZE;
+            graphics.blitSprite(pipeline, empty, pipX, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
             int halfIndex = i * 2 + 1;
             if (halfIndex < filledHalves) {
-                graphics.blitSprite(pipeline, full, xo, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
+                graphics.blitSprite(pipeline, full, pipX, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
             } else if (halfIndex == filledHalves) {
-                graphics.blitSprite(pipeline, half, xo, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
+                graphics.blitSprite(pipeline, half, pipX, yLineBase, SPRITE_SIZE, SPRITE_SIZE);
             }
         }
     }

@@ -46,12 +46,6 @@ public class ConfigGeneral extends Config {
             "Bread (saturation 6.0) at 0.25 = 1.5 half-hearts from this term.")
     public ValidatedDouble legacyHungerHealPerSaturation = new ValidatedDouble(0.25, 100.0, 0.0);
 
-    // --- Stamina consumers ---
-    // Configured base costs are scaled by the player's stamina_cost attribute (default 1.0,
-    // lower = cheaper) via a listener registered on ChangeStaminaEvent / ChangeStaminaCallback.
-    // Set any cost to 0.0 to disable that consumer entirely. While stamina sits at zero
-    // (the regen-delay lockout window), the corresponding action is blocked outright.
-
     @Comment("Stamina drained per landed melee hit (full-cooldown swings only). " +
             "Scaled by the stamina_cost attribute. Set 0 to disable.")
     public ValidatedDouble attackStaminaCost = new ValidatedDouble(1.0, 1000.0, 0.0);

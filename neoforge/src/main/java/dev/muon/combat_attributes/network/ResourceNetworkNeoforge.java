@@ -8,10 +8,6 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-/**
- * NeoForge registration for the resource-anchor channel: declares the
- * clientbound payload and routes received anchors into the client extrapolator.
- */
 @EventBusSubscriber(modid = CombatAttributes.MOD_ID)
 public final class ResourceNetworkNeoforge {
 

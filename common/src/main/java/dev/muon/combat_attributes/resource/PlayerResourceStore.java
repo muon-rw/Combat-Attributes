@@ -27,6 +27,5 @@ public interface PlayerResourceStore {
      */
     void set(Player player, PlayerResourceData data);
 
-    /** Whether the player has a non-default record stored. */
     boolean has(Player player);
 }

@@ -13,39 +13,18 @@ import java.util.OptionalDouble;
 import java.util.function.Supplier;
 
 /**
- * Common attribute registry for the mod. Lists every attribute once in {@link #ALL};
- * loader-specific code iterates that list to register attributes and to attach them
- * to every living entity, populating the holder map via {@link #put}.
- *
- * <p>How an attribute stacks is decided at registration time from
- * {@code AttributeSpec.stackingMode}, exposed in the config file as a per-attribute enum
- * ({@code LINEAR} / {@code SOFT_CAP} / {@code PROBABILISTIC}). Loader code reads it and
- * chooses the concrete attribute class: vanilla {@code RangedAttribute} for {@code LINEAR},
- * {@code DiminishingRangedAttribute} (or the percent variant on NeoForge) for the others.
- *
- * <p>{@link Entry#playerOnly} restricts an attribute to {@code EntityType.PLAYER}. Combat
- * stats apply to every {@code LivingEntity} (mobs crit, evade, lifesteal); the resource
- * stats (stamina/mana) attach only to players, since mobs neither tick regen nor pay costs.
- *
- * <p>All attribute reads from this mod's gameplay code should go through
- * {@link #valueOrDefault(LivingEntity, Holder)} so that a partial-registration edge case
- * (e.g. an entity loaded with a stale {@code AttributeSupplier} from a previous version,
- * or a third-party LivingEntity subclass that doesn't chain through
- * {@code createLivingAttributes}) degrades gracefully to the attribute's intrinsic
- * default rather than throwing {@code IllegalArgumentException}.
+ * Read attributes via {@link #valueOrDefault} so an entity whose {@code AttributeSupplier}
+ * lacks one (stale supplier from an older version, or a subclass that skips
+ * {@code createLivingAttributes}) degrades to the attribute's default instead of throwing.
  */
 public final class ModAttributes {
 
     private ModAttributes() {}
 
     /**
-     * Pairs an attribute id with its {@link AttributeSpec} supplier and an optional
-     * percent-display scale factor. Loader code consumes the scale: Fabric publishes it
-     * to Dynamic Tooltips at client init; NeoForge picks {@code PercentageAttribute} /
-     * {@code DiminishingPercentageAttribute} as the concrete class at registration time.
-     *
-     * <p>{@code playerOnly} entries are skipped when building/augmenting attribute
-     * suppliers for non-player entity types.
+     * {@code percentScale} drives percent-display tooltips and is consumed differently per
+     * loader: Fabric publishes it to Dynamic Tooltips; NeoForge selects the percent attribute
+     * class at registration.
      */
     public record Entry(String id, Supplier<AttributeSpec> spec, OptionalDouble percentScale,
                         boolean playerOnly, Sentiment sentiment) {
@@ -83,7 +62,7 @@ public final class ModAttributes {
             Entry.percent("evasion",            () -> Configs.ATTRIBUTES.evasion,          100.0),
             Entry.percent("lifesteal",          () -> Configs.ATTRIBUTES.lifesteal,        100.0),
             Entry.flat   ("magic_defense",      () -> Configs.ATTRIBUTES.magicDefense),
-            Entry.flat   ("health_regeneration",() -> Configs.ATTRIBUTES.healthRegeneration),
+            Entry.flat   ("health_regen",       () -> Configs.ATTRIBUTES.healthRegen),
             // Bow physics
             Entry.percent("draw_speed",         () -> Configs.ATTRIBUTES.drawSpeed,        100.0),
             Entry.percent("arrow_velocity",     () -> Configs.ATTRIBUTES.arrowVelocity,    100.0),
@@ -115,14 +94,6 @@ public final class ModAttributes {
         return HOLDERS.values();
     }
 
-    /**
-     * Reads an attribute value safely. Returns the attribute's intrinsic default if the
-     * entity's {@code AttributeSupplier} doesn't include this attribute, instead of
-     * throwing. Use this anywhere this mod's code reads its own attributes off a
-     * LivingEntity that might predate the attribute's registration (e.g. a saved entity
-     * loaded after a mod update that added new attributes, or an entity whose subclass
-     * doesn't chain through {@code LivingEntity#createLivingAttributes}).
-     */
     public static double valueOrDefault(LivingEntity entity, Holder<Attribute> attr) {
         return entity.getAttributes().hasAttribute(attr)
                 ? entity.getAttributeValue(attr)
@@ -140,7 +111,7 @@ public final class ModAttributes {
     public static Holder<Attribute> evasion()          { return get("evasion"); }
     public static Holder<Attribute> lifesteal()        { return get("lifesteal"); }
     public static Holder<Attribute> magicDefense()     { return get("magic_defense"); }
-    public static Holder<Attribute> healthRegeneration() { return get("health_regeneration"); }
+    public static Holder<Attribute> healthRegen() { return get("health_regen"); }
     public static Holder<Attribute> drawSpeed()        { return get("draw_speed"); }
     public static Holder<Attribute> arrowVelocity()    { return get("arrow_velocity"); }
     public static Holder<Attribute> accuracy()         { return get("accuracy"); }

@@ -8,8 +8,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.Minecraft;
 
 /**
- * Fabric HUD wiring for the stamina + mana bars.
- *
  * <p>Two registrations per bar:
  * <ol>
  *   <li>{@link HudElementRegistry#attachElementAfter}: places the bar in render

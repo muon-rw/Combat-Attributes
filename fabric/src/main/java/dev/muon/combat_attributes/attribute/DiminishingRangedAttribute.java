@@ -5,10 +5,9 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import java.util.function.Supplier;
 
 /**
- * Fabric concrete attribute: extends vanilla {@link RangedAttribute}, implements
- * {@link DiminishingAttribute}. Bounds are read from the {@link AttributeSpec}
- * once at registration time (so changes need a restart). Soft-cap parameters are
- * read on every {@link #combineAll} call, so live config edits propagate.
+ * Bounds are read from the {@link AttributeSpec} once at registration time, so
+ * changing them needs a restart. Soft-cap parameters are read on every
+ * {@link #combineAll} call, so live config edits propagate.
  */
 public class DiminishingRangedAttribute extends RangedAttribute implements DiminishingAttribute {
 

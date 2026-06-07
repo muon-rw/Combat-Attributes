@@ -28,7 +28,7 @@ ___
 | `evasion`            | Chance to dodge incoming damage of any source                                    | 0%      | Yes                  | 30%            |
 | `lifesteal`          | Heals attacker for a fraction of damage dealt within attack range                | 0%      | No                   | none           |
 | `magic_defense`      | Armor style mitigation against `#c:is_magic` damage                              | 0       | No                   | none           |
-| `health_regeneration`| Health regenerated per second, always, while below max (any living entity)       | 0       | No                   | none           |
+| `health_regen`       | Health regenerated per second, always, while below max (any living entity)       | 0       | No                   | none           |
 | `max_stamina`        | Max stamina pool. Powers sprinting, jumping, attacks, bow draws, etc             | 20      | No                   | none           |
 | `stamina_regen`      | Stamina regenerated per second                                                   | 2       | No                   | none           |
 | `stamina_cost`       | Multiplier on stamina costs paid by abilities                                    | 100%    | Yes                  | -30%           |

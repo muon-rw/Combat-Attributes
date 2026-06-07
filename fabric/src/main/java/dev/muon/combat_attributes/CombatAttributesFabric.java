@@ -14,7 +14,7 @@ public class CombatAttributesFabric implements ModInitializer {
         // ModAttributesFabric registers from <clinit>; this no-op forces the class
         // to load. DefaultAttributesMixin's augment() also forces <clinit> as a
         // defensive trampoline; idempotent since the JVM runs <clinit> once.
-        ModAttributesFabric.ensureInitialized();
+        ModAttributesFabric.init();
 
         PlayerResourceAttachmentFabric.init();
         PlayerResourceEventsFabric.init();

@@ -36,7 +36,6 @@ public final class ClientResourceExtrapolator {
 
     private ClientResourceExtrapolator() {}
 
-    /** Apply a received anchor: seat it on the player if present, else stash until the entity spawns. */
     public static void receiveAnchor(Level level, int entityId, PlayerResourceData data) {
         if (level == null) {
             return;
@@ -48,11 +47,17 @@ public final class ClientResourceExtrapolator {
         }
     }
 
-    /** Per client tick: drain pending anchors, then advance every anchored remote player by one regen step. */
     public static void tick(Level level, Player self) {
         if (level == null) {
             return;
         }
+        advanceTrackedPlayers(level, self);
+        // Seat pending anchors AFTER advancing, so a player seated this tick isn't also advanced this tick
+        // (that would overshoot the anchor by one regen step); it starts advancing next tick instead.
+        applyPending(level);
+    }
+
+    private static void advanceTrackedPlayers(Level level, Player self) {
         PlayerResourceStore store = Services.PLATFORM.getPlayerResourceStore();
         for (Player player : level.players()) {
             if (player == self || !store.has(player)) {
@@ -60,12 +65,8 @@ public final class ClientResourceExtrapolator {
             }
             store.set(player, PlayerResourceTicker.computeRegenTick(player, store.get(player)));
         }
-        // Seat pending anchors AFTER advancing, so a player seated this tick isn't also advanced this tick
-        // (that would overshoot the anchor by one regen step); it starts advancing next tick instead.
-        applyPending(level);
     }
 
-    /** Drop stashed anchors on disconnect/world change. */
     public static void clear() {
         PENDING.clear();
     }

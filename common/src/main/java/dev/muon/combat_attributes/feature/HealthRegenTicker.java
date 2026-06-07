@@ -4,17 +4,8 @@ import dev.muon.combat_attributes.attribute.ModAttributes;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
- * Per-tick health regeneration driven by the {@code health_regeneration} attribute.
- * Attaches to every living entity, so mobs with the attribute regenerate too;
- * loader code feeds living entities here from its own server-side tick event
- * (NeoForge {@code EntityTickEvent.Post}, Fabric {@code END_SERVER_TICK}).
- *
- * <p>Unlike stamina/mana regen, this is <em>always</em> applied while the entity
- * is below max health; no delay timer or pause condition gates it.
- *
- * <p>Attribute units are health <em>per second</em>, divided across 20 ticks so
- * fractional rates (e.g. 0.5/sec) accumulate predictably in the float health value,
- * mirroring {@link dev.muon.combat_attributes.resource.PlayerResourceTicker}'s regen math.
+ * Regenerates any living entity carrying the {@code health_regen} attribute, not just players.
+ * The attribute is health per second, divided across 20 ticks.
  */
 public final class HealthRegenTicker {
 
@@ -27,7 +18,7 @@ public final class HealthRegenTicker {
         if (!entity.isAlive()) return;
         if (entity.getHealth() >= entity.getMaxHealth()) return;
 
-        float regenPerSecond = (float) ModAttributes.valueOrDefault(entity, ModAttributes.healthRegeneration());
+        float regenPerSecond = (float) ModAttributes.valueOrDefault(entity, ModAttributes.healthRegen());
         if (regenPerSecond <= 0.0F) return;
 
         entity.heal(regenPerSecond * SECONDS_PER_TICK);

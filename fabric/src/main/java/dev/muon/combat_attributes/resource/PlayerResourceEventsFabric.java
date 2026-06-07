@@ -8,19 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 
-/**
- * Fabric server-side hooks for stamina/mana regen plus the per-tick stamina
- * consumers. Iterating online players in {@code END_SERVER_TICK} mirrors the
- * cadence Dynamic Difficulty uses for its per-player tick work: it runs once
- * per tick after entities have moved, so resource updates land in the
- * snapshot the next client packet sees.
- *
- * <p>Also registers the {@code stamina_cost} multiplier on
- * {@link ChangeStaminaCallback#EVENT} so every drain (first-party consumers,
- * ticker drains, and any third-party {@code setStamina} caller) picks up the
- * attribute through one shared listener rather than each call site reading
- * the multiplier itself.
- */
 public final class PlayerResourceEventsFabric {
 
     private PlayerResourceEventsFabric() {}
@@ -33,7 +20,7 @@ public final class PlayerResourceEventsFabric {
                 AttackStaminaHandler.shouldCancelAttack(player) ? InteractionResult.FAIL : InteractionResult.PASS);
 
         PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, blockEntity) -> {
-            BlockBreakStaminaHandler.onBreakAttempt(player);
+            BlockBreakStaminaHandler.applyBreakCost(player);
             return true;
         });
 
@@ -43,8 +30,7 @@ public final class PlayerResourceEventsFabric {
             }
         });
 
-        // Seed a client with a player's pool the moment it starts tracking them, so over-head bars /
-        // resource orbs have a value to extrapolate from without waiting for that player's next spend.
+        // Seed the pool at tracking-start so over-head bars can extrapolate before the next spend.
         EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) ->
                 ResourceSync.sendAnchorTo(player, trackedEntity));
     }

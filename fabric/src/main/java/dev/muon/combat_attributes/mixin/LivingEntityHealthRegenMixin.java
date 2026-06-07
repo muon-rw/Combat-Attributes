@@ -8,11 +8,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Fabric-only per-entity {@code health_regeneration} hook. Fabric has no per-entity
- * tick event, so regen is driven straight off {@link LivingEntity#tick()} rather than
- * sweeping every loaded entity each server tick. {@code TAIL} matches the end-of-tick
- * timing of the NeoForge {@code EntityTickEvent.Post} handler; the server-side guard
- * mirrors it too, since {@code tick} runs on both logical sides.
+ * Fabric has no per-entity tick event, so {@code health_regen} is driven off
+ * {@link LivingEntity#tick()}.
  */
 @Mixin(value = LivingEntity.class, remap = false)
 public abstract class LivingEntityHealthRegenMixin {

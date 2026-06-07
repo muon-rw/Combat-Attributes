@@ -6,29 +6,8 @@ import dev.muon.combat_attributes.platform.Services;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * Static facade for reading + writing the player's stamina/mana state.
- *
- * <p>Routes through {@link Services#PLATFORM} so common code stays loader-agnostic.
- * Both loaders' attachments auto-sync to the owning client on write, so callers
- * don't dispatch packets manually.
- *
- * <p>Read methods clamp into {@code [0, max]} on the way out so callers never see
+ * Read methods clamp into {@code [0, max]} on the way out so callers never see
  * a stale "current > max" after the player's max attribute dropped.
- *
- * <p>Every write path dispatches the loader-native {@code ChangeStaminaEvent} /
- * {@code ChangeManaEvent} via {@link Services#PLATFORM} before committing, so
- * listeners can mutate or cancel the change. Listeners get the raw caller
- * argument, which can fall outside {@code [0, max]} (a consumer draining more
- * stamina than the player has passes a negative). The returned value is
- * re-clamped into {@code [0, max]} after listeners run, so they can't push the
- * pool out of range through this hook; a no-op result (listener returned
- * {@code oldValue}) skips the write.
- *
- * <p>When a write brings stamina from positive down to exactly zero, the
- * persisted {@code staminaRegenDelayTicks} is set from
- * {@link dev.muon.combat_attributes.config.ConfigGeneral#staminaEmptyRegenDelay}
- * so the regen ticker pauses recovery during the exhaustion window. Mana writes
- * never touch this field.
  */
 public final class PlayerResources {
 
@@ -130,7 +109,6 @@ public final class PlayerResources {
         float resolved = clamp(Services.PLATFORM.fireChangeMana(player, current.mana(), mana), getMaxMana(player));
         if (resolved == current.mana()) return;
         Services.PLATFORM.getPlayerResourceStore().set(player, current.withMana(resolved));
-        // A spend is a perturbation the client can't predict; re-anchor its trackers.
         ResourceSync.broadcastAnchor(player);
     }
 

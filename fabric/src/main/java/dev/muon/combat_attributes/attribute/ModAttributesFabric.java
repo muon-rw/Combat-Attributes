@@ -15,25 +15,6 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 import java.util.Map;
 
-/**
- * Fabric-side attribute registration. Drives off {@link ModAttributes#ALL} so the
- * source of truth stays in common.
- *
- * <p>Registration runs from the class's static initializer. Both the
- * {@code DefaultAttributes#getSupplier} mixin and the
- * {@code ModInitializer.onInitialize} entrypoint reach registration through
- * {@link #ensureInitialized()}, which is a no-op call that exists only to force
- * {@code <clinit>}. Whichever runs first wins; subsequent calls are no-ops because
- * the JVM runs {@code <clinit>} exactly once. The mixin call is defensive:
- * {@code getSupplier} is invoked at entity-construction time, well after
- * {@code onInitialize}, so in practice the entrypoint path always populates the
- * holder map first.
- *
- * <p>Reads {@code AttributeSpec.stackingMode} per entry and registers either a
- * {@link DiminishingRangedAttribute} (any non-LINEAR mode) or vanilla {@link RangedAttribute}
- * (LINEAR). Vanilla stacking semantics (notably the compounding-per-modifier behavior of
- * ADD_MULTIPLIED_TOTAL) are preserved exactly when the mode is LINEAR.
- */
 public final class ModAttributesFabric {
 
     static {
@@ -45,31 +26,17 @@ public final class ModAttributesFabric {
 
     private ModAttributesFabric() {}
 
-    /**
-     * No-op trampoline. Calling it forces this class's {@code <clinit>}, which
-     * registers every mod attribute exactly once. Called from
-     * {@code ModInitializer.onInitialize} (the primary path) and from
-     * {@link #augment(AttributeSupplier, EntityType)} (defensive; {@code getSupplier} is
-     * not invoked before mod load completes, but the call is cheap).
-     */
-    public static void ensureInitialized() {}
+    /** No-op call that forces this class's {@code <clinit>}, registering every mod attribute once. */
+    public static void init() {}
 
     /**
-     * Builds a copy of {@code original} that includes every Combat Attributes
-     * holder appropriate for {@code entityType}, in addition to the original's
-     * attributes. Existing entries keep their base values. Called from
-     * {@code DefaultAttributesMixin}, which caches the result so each entity
-     * type pays the rebuild cost once.
-     *
-     * <p>{@code playerOnly} entries are filtered out for non-player entity types so
-     * stamina/mana attach only to the player.
-     *
-     * <p>Reads {@code original.instances} via {@link AttributeSupplierAccessor}, since
-     * vanilla's {@code AttributeSupplier.Builder} lacks a copy constructor (NeoForge has
-     * one, but it is not in vanilla).
+     * Copies {@code original} plus every Combat Attributes holder for {@code entityType}
+     * ({@code playerOnly} entries only for the player), reading its instances via
+     * {@link AttributeSupplierAccessor} since vanilla's {@code AttributeSupplier.Builder} has no
+     * copy constructor.
      */
     public static AttributeSupplier augment(AttributeSupplier original, EntityType<?> entityType) {
-        ensureInitialized();
+        init();
         boolean isPlayer = entityType == EntityType.PLAYER;
         AttributeSupplier.Builder builder = AttributeSupplier.builder();
         Map<Holder<Attribute>, AttributeInstance> instances =
@@ -90,11 +57,11 @@ public final class ModAttributesFabric {
     private static void registerAll() {
         for (ModAttributes.Entry entry : ModAttributes.ALL) {
             String descriptionId = "attribute." + CombatAttributes.MOD_ID + "." + entry.id();
-            AttributeSpec snap = entry.spec().get();
-            Attribute attribute = snap.stackingMode.get() != AttributeSpec.StackingMode.LINEAR
+            AttributeSpec spec = entry.spec().get();
+            Attribute attribute = spec.stackingMode.get() != AttributeSpec.StackingMode.LINEAR
                     ? new DiminishingRangedAttribute(descriptionId, entry.spec())
                     : new RangedAttribute(descriptionId,
-                            snap.defaultValue.get(), snap.minValue.get(), snap.maxValue.get());
+                            spec.defaultValue.get(), spec.minValue.get(), spec.maxValue.get());
             attribute.setSyncable(true);
             attribute.setSentiment(entry.sentiment());
             Holder<Attribute> holder = Registry.registerForHolder(

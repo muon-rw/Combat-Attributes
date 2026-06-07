@@ -7,9 +7,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.resources.Identifier;
 
 /**
- * Fabric attachment for {@link PlayerResourceData}.
- *
- * <p>Persistent (saved with the player NBT via the codec) and synced to the owning
+ * Persistent (saved with the player NBT via the codec) and synced to the owning
  * client only ({@link AttachmentSyncPredicate#targetOnly()}): the precise, per-tick
  * stream that drives that player's own HUD. <em>Other</em> players' pools reach a
  * client through the throttled, event-driven resource-anchor packet plus client-side

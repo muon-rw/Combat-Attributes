@@ -8,19 +8,10 @@ import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-/**
- * Implements {@code experience_gain} by scaling only the XP that ends up in the player's
- * XP bar. Wraps the {@code Player#giveExperiencePoints} call inside
- * {@code ExperienceOrb#playerTouch}, so the orb's stored value, mending repair, and any
- * non-orb XP source ({@code /xp} command, advancement rewards, custom code) are all
- * untouched. Only the bar-bound integer is multiplied.
- *
- * Intentional that this excludes other sources for now, until we can consider
- * which cases "other sources" actually entails in a modded context
- */
 @Mixin(value = ExperienceOrb.class, remap = false)
 public class ExperienceOrbMixin {
 
+    // Scales only the bar-bound XP; orb-stored value, mending repair, and non-orb sources are intentionally untouched.
     @WrapOperation(method = "playerTouch",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;giveExperiencePoints(I)V"))

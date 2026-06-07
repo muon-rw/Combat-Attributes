@@ -10,23 +10,12 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-/**
- * NeoForge server-side hooks for stamina/mana regen, the per-tick stamina
- * consumers, and the {@code stamina_cost} multiplier listener.
- *
- * <p>We use {@code PlayerTickEvent.Post} so we read the "end of tick" view of
- * the player's resources, after every system has mutated state. Same cadence as
- * the Fabric {@code END_SERVER_TICK} path.
- *
- * <p>The {@link ChangeStaminaEvent} listener centralises the {@code stamina_cost}
- * multiplier so every drain (first-party consumers, ticker drains, third-party
- * {@code setStamina} callers) picks it up through one shared listener.
- */
 @EventBusSubscriber(modid = CombatAttributes.MOD_ID)
 public final class PlayerResourceEventsNeoforge {
 
     private PlayerResourceEventsNeoforge() {}
 
+    // Post reads the end-of-tick resource view, after every system has mutated state.
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -50,7 +39,7 @@ public final class PlayerResourceEventsNeoforge {
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
-        BlockBreakStaminaHandler.onBreakAttempt(event.getPlayer());
+        BlockBreakStaminaHandler.applyBreakCost(event.getPlayer());
     }
 
     @SubscribeEvent

@@ -5,19 +5,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 
-/**
- * Legacy-hunger feature gate and food→health formula.
- *
- * <p>When enabled, the hunger HUD row is suppressed by per-loader wiring, the {@link
- * net.minecraft.world.food.FoodData} field is masked into the {@code [7, 17]} range and its tick
- * is short-circuited (no exhaustion / starvation / regen), and food consumption heals the player
- * directly through {@link #applyOnConsume}.
- *
- * <p>{@link #computeHeal(int, float)} rounds to whole half-hearts so external integrations
- * (AppleSkin tooltip and HUD held-food preview) and the actual heal amount agree on a single
- * integer count. Before rounding, the tooltip and HUD diverged because they used different
- * rounding modes on the same float.
- */
 public final class LegacyHunger {
 
     private LegacyHunger() {}
@@ -36,6 +23,7 @@ public final class LegacyHunger {
         if (Configs.GENERAL == null) return 0.0F;
         double perN = Configs.GENERAL.legacyHungerHealPerNutrition.get();
         double perS = Configs.GENERAL.legacyHungerHealPerSaturation.get();
+        // Round to whole half-hearts so the AppleSkin tooltip, HUD preview, and applied heal agree on one integer.
         return (float) Math.round(perN * nutrition + perS * saturation);
     }
 

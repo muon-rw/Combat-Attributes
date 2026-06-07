@@ -35,8 +35,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(value = Projectile.class, remap = false)
 public class ProjectileShootHelperMixin {
 
-    // --- Direct overload: shooter from projectile.getOwner() ---
-
     @ModifyVariable(
             method = "spawnProjectileUsingShoot(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;DDDFF)Lnet/minecraft/world/entity/projectile/Projectile;",
             at = @At("HEAD"), argsOnly = true, name = "pow")
@@ -52,8 +50,6 @@ public class ProjectileShootHelperMixin {
                                                                 @Local(argsOnly = true, name = "projectile") Projectile projectile) {
         return projectile.getOwner() instanceof LivingEntity owner ? scaleAccuracy(owner, uncertainty) : uncertainty;
     }
-
-    // --- Factory overload: shooter from explicit `source` arg ---
 
     @ModifyVariable(
             method = "spawnProjectileUsingShoot(Lnet/minecraft/world/entity/projectile/Projectile$ProjectileFactory;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;DDDFF)Lnet/minecraft/world/entity/projectile/Projectile;",
