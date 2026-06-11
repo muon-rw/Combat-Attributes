@@ -85,10 +85,11 @@ public abstract class LivingEntityMixin {
         }
 
         float modified = DamageHandler.modifyIncomingDamage(self, source, damage);
+        float preTotal = self.getHealth() + self.getAbsorptionAmount();
         boolean applied = original.call(level, source, modified);
 
         if (applied) {
-            DamageHandler.afterDamage(self, source, modified);
+            DamageHandler.afterDamage(self, source, preTotal - self.getHealth() - self.getAbsorptionAmount());
         }
         return applied;
     }
