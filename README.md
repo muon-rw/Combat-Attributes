@@ -1,8 +1,8 @@
 # Combat Attributes
 
-### *Twenty-one* RPG combat attributes for Minecraft, centralized for easy usage by other mods.
+### *Twenty-two* RPG combat attributes for Minecraft, centralized for easy usage by other mods
 
-***Diminishing Returns** and other smart features built in!*
+***Diminishing Returns** and other neat features built in!*
 - **For Minecraft 26.1.2 (Fabric / NeoForge).**
 - **Requires [FzzyConfig](https://modrinth.com/mod/fzzy-config)**
 - **Highly Recommended: [Dynamic Resource Bars](https://www.curseforge.com/minecraft/mc-mods/dynamic-rpg-resource-bars)** 
@@ -29,6 +29,7 @@ ___
 | `evasion`            | Chance to dodge incoming damage of any source                                    | 0%      | Yes                  | 30%            |
 | `lifesteal`          | Heals attacker for a fraction of damage dealt within attack range                | 0%      | No                   | none           |
 | `magic_defense`      | Armor style mitigation against `#c:is_magic` damage                              | 0       | No                   | none           |
+| `health_regen`       | Health regenerated per second, always, while below max (any living entity)       | 0       | No                   | none           |
 | `max_stamina`        | Max stamina pool. Powers sprinting, jumping, attacks, bow draws, etc             | 20      | No                   | none           |
 | `stamina_regen`      | Stamina regenerated per second                                                   | 2       | No                   | none           |
 | `stamina_cost`       | Multiplier on stamina costs paid by abilities                                    | 100%    | Yes                  | -30%           |
@@ -38,9 +39,9 @@ ___
 | `experience_gain`    | Multiplier on XP awarded to your XP bar from experience orbs                     | 100%    | No                   | none           |
 
 ## Legacy Hunger system:
-- Option to **disable vanilla hunger** entirely, to use the stamina system instead *(But you can use both if you want)*
-- When Legacy Hunger is enabled, all food instead **restores health**, with a heart amount based on its nutrition and saturation values
-- The conversion from food/saturation into hearts restored is configurable!
+- Option to **disable vanilla hunger** entirely, relying on the stamina system instead *(but you can use both if you want!)*
+- When Legacy Hunger is enabled, all food **restores health** instead, based on its nutrition and saturation values
+- The conversion from food/saturation into hearts is configurable!
 
 ## Default HUD Bars, Dynamic Resource Bars compatibility:
 [Example gifs TODO]
@@ -78,9 +79,9 @@ Each attribute can configure:
 > [!IMPORTANT]
 > ### How do Diminishing Returns Work?
 > Every source is "soft-capped", then combine based on the attribute's `stackingMode`:
-> - `SOFT_CAP`: Separate sources add normally; only individual sources have a soft cap. Used for crit damage.
+> - `SOFT_CAP` (only): Separate sources add normally; only individual sources have a soft cap. Used for crit damage by default.
 > - - *Example:* A mod wants to provide a stat or a potion effect that grants crit damage per level, without ever having absurd values
-> - - A +50% modifier is unchanged; but a single source of +200% only actually grants ~+83%, asymptoting toward +100% (the per source ceiling)
+> - - A +50% modifier is unchanged; but a much higher single source, like a skill granting 2% per level at level 100, instead of +200% gives... ~+83%! Future levels diminish toward +100% (the default per source ceiling)
 > - `MULTIPLICATIVE`: Typically used for "reduction" stats (stamina_cost, mana_cost)"
 > - - *Example:* two -20% modifiers stack to -36% (not -40%)
 > - `PROBABILISTIC`: Typically used for chance stats (crit chance, evasion, accuracy).

@@ -13,13 +13,13 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 /**
  * NeoForge HUD wiring for the stamina + mana bars.
  *
- * <p>Each layer renders relative to {@code Gui.rightHeight} — NeoForge resets
+ * <p>Each layer renders relative to {@code Gui.rightHeight}. NeoForge resets
  * that field to 39 every frame and bumps it by 10 after every right-side bar
- * draws (food, vehicle health, …) so the air bar above can read it as its
+ * draws (food, vehicle health, etc.) so the air bar above can read it as its
  * top-of-stack offset. Our layers participate by reading {@code rightHeight}
  * for their own Y, then bumping it by 10 only when actually drawn. That single
  * gate is what makes the air bubble layer shift up only while the stamina or
- * mana bar is visible — no mixin required, NeoForge's existing layout is the
+ * mana bar is visible; no mixin required, NeoForge's existing layout is the
  * right hook.
  *
  * <p>Layers register via {@link RegisterGuiLayersEvent#registerAbove}: stamina

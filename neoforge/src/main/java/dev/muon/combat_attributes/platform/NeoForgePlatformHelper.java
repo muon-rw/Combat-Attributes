@@ -5,10 +5,14 @@ import dev.muon.combat_attributes.resource.event.ChangeStaminaEvent;
 import dev.muon.combat_attributes.platform.services.IPlatformHelper;
 import dev.muon.combat_attributes.resource.PlayerResourceStore;
 import dev.muon.combat_attributes.resource.PlayerResourceStoreNeoforge;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
 
@@ -51,5 +55,15 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
         ChangeManaEvent event = new ChangeManaEvent(player, oldValue, newValue);
         NeoForge.EVENT_BUS.post(event);
         return event.isCanceled() ? oldValue : event.getNewValue();
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayer(player, payload);
+    }
+
+    @Override
+    public void sendToPlayersTrackingEntity(Entity subject, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayersTrackingEntity(subject, payload);
     }
 }

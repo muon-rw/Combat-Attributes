@@ -8,22 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-/**
- * Arrow-velocity and accuracy integration for both bows and crossbows. Hooks the
- * unified {@code ProjectileWeaponItem#shoot} entry point that both subclasses funnel
- * through, modifying the {@code power} (velocity) and {@code uncertainty} (spread)
- * parameters before they're passed down to per-projectile shooting.
- *
- * <p>Velocity scaling: {@code power *= (1 + arrow_velocity)} — additive percent bonus
- * on the muzzle speed. Note that {@link net.minecraft.world.entity.projectile.arrow.AbstractArrow}'s
- * direct-hit damage is computed from the actual flight velocity, so this also indirectly
- * boosts arrow hit damage (in addition to the {@code ranged_damage} flat bonus applied
- * via {@code LivingEntityHurtMixin}).
- *
- * <p>Accuracy scaling: {@code uncertainty *= max(0, 1 - accuracy)} — perfect accuracy
- * (1.0) zeroes out spread; intermediate values reduce it proportionally.
- *
- */
+// Velocity scaling also boosts AbstractArrow direct-hit damage, since vanilla derives hit damage from flight velocity.
 @Mixin(value = ProjectileWeaponItem.class, remap = false)
 public class ProjectileWeaponItemMixin {
 

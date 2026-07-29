@@ -1,37 +1,19 @@
 package dev.muon.combat_attributes.platform.services;
 
 import dev.muon.combat_attributes.resource.PlayerResourceStore;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
 public interface IPlatformHelper {
 
-    /**
-     * Gets the name of the current platform
-     *
-     * @return The name of the current platform.
-     */
     String getPlatformName();
 
-    /**
-     * Checks if a mod with the given id is loaded.
-     *
-     * @param modId The mod to check if it is loaded.
-     * @return True if the mod is loaded, false otherwise.
-     */
     boolean isModLoaded(String modId);
 
-    /**
-     * Check if the game is currently in a development environment.
-     *
-     * @return True if in a development environment, false otherwise.
-     */
     boolean isDevelopmentEnvironment();
 
-    /**
-     * Gets the name of the environment type as a string.
-     *
-     * @return The name of the environment type.
-     */
     default String getEnvironmentName() {
 
         return isDevelopmentEnvironment() ? "development" : "production";
@@ -60,4 +42,10 @@ public interface IPlatformHelper {
 
     /** Mana counterpart to {@link #fireChangeStamina(Player, float, float)}. */
     float fireChangeMana(Player player, float oldValue, float newValue);
+
+    /** Sends a clientbound payload to a single player. Server-side only. */
+    void sendToPlayer(ServerPlayer player, CustomPacketPayload payload);
+
+    /** Sends a clientbound payload to every player tracking {@code subject} (excludes {@code subject} itself). Server-side only. */
+    void sendToPlayersTrackingEntity(Entity subject, CustomPacketPayload payload);
 }

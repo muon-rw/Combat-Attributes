@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * Routes any attribute that implements {@link DiminishingAttribute} through its
  * {@link DiminishingAttribute#combineAll combineAll} math instead of vanilla's
  * per-operation linear sum. Vanilla attributes (and Combat Attributes' LINEAR-mode
- * attrs, which don't implement {@code DiminishingAttribute}) are untouched — the
+ * attrs, which don't implement {@code DiminishingAttribute}) are untouched: the
  * {@code instanceof} check short-circuits and the original return value is kept.
  *
  * <p>Vanilla {@code calculateValue}:
@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.At;
  *
  * <p>The diminishing path collapses each operation's modifiers into a single sum before
  * combining, which differs from vanilla's per-modifier compounding for ADD_MULTIPLIED_TOTAL.
- * That's intentional — {@code AttributeSpec.combineAll} owns combination semantics, and
+ * That's intentional: {@code AttributeSpec.combineAll} owns combination semantics, and
  * per-modifier compounding would let multiple "+50%" modifiers slip past any per-operation
  * soft cap.
  */

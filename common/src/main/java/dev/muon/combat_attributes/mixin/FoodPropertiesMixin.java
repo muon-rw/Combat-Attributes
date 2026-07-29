@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Reroutes the food/saturation grant in {@link FoodProperties#onConsume} into a direct heal when
  * the legacy-hunger feature is on. {@link Consumable#onConsume} still runs all other consume
  * effects (potions, sounds, particles, cooldowns) since it iterates effects independently of this
- * call — only the hunger-bar refill is reinterpreted.
+ * call; only the hunger-bar refill is reinterpreted.
  */
 @Mixin(value = FoodProperties.class, remap = false)
 public abstract class FoodPropertiesMixin {

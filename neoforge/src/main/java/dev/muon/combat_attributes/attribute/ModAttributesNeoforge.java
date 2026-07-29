@@ -24,13 +24,7 @@ import java.util.function.Supplier;
  * the common holder map in {@link #init()} after the {@link DeferredRegister} has fired.
  *
  * <p>Picks the concrete attribute class from the entry's percent flag and the spec's
- * stacking mode (anything non-LINEAR routes through a {@link DiminishingAttribute} variant):
- * <ul>
- *   <li>percent + non-LINEAR → {@link DiminishingPercentageAttribute}</li>
- *   <li>percent + LINEAR     → {@link PercentageAttribute}</li>
- *   <li>flat    + non-LINEAR → {@link DiminishingRangedAttribute}</li>
- *   <li>flat    + LINEAR     → {@link RangedAttribute}</li>
- * </ul>
+ * stacking mode (anything non-LINEAR routes through a {@link DiminishingAttribute} variant).
  *
  * <p>Percent variants route through NeoForge's {@code IAttributeExtension.toComponent},
  * so vanilla item-attribute tooltips and any third-party UI that uses NeoForge's API

@@ -29,7 +29,7 @@ public interface DiminishingAttribute {
     double combineAll(double base, double addRaw, double mulBaseRaw, double mulTotalRaw);
 
     /**
-     * Per-operation asymptote — the most any single operation slot can contribute,
+     * Per-operation asymptote: the most any single operation slot can contribute,
      * a.k.a. the "M" in {@code M*x/(x+k)}. For PROBABILISTIC this is the per-source
      * probability cap; for SOFT_CAP it's the maximum additive bonus; for MULTIPLICATIVE
      * it's the maximum reduction fraction. Exposed for UI use (tooltips that show
@@ -38,7 +38,7 @@ public interface DiminishingAttribute {
     double softCap();
 
     /**
-     * The configured stacking mode. Single source of truth — the boolean helpers below
+     * The configured stacking mode. Single source of truth; the boolean helpers below
      * delegate to this. Downstream UI / tooltip code can switch on the enum directly.
      */
     AttributeSpec.StackingMode stackingMode();
@@ -52,7 +52,7 @@ public interface DiminishingAttribute {
     }
 
     /**
-     * {@code true} if this attribute uses multiplicative stacking on cost factors —
+     * {@code true} if this attribute uses multiplicative stacking on cost factors,
      * lower-is-better multipliers like mana cost. Reductions diminish per slot, then
      * combine via {@code base · Π(1 - r_i)}; increases pass through linearly.
      */

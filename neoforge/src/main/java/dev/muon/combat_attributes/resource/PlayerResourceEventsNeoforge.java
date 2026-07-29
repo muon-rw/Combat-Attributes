@@ -6,28 +6,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-/**
- * NeoForge server-side hooks for stamina/mana regen + the per-tick stamina
- * consumers, and the {@code stamina_cost} multiplier listener.
- *
- * <p>The {@code PlayerTickEvent.Post} variant fires after every system has
- * had a chance to mutate state this tick, so we see the canonical
- * "end of tick" view of the player's resources before writing — matches the
- * cadence of the Fabric {@code END_SERVER_TICK} path.
- *
- * <p>The {@link ChangeStaminaEvent} listener centralises the
- * {@code stamina_cost} attribute multiplier so every drain — first-party
- * consumers, ticker drains, and any third-party {@code setStamina} caller —
- * picks up the multiplier through one shared listener.
- */
 @EventBusSubscriber(modid = CombatAttributes.MOD_ID)
 public final class PlayerResourceEventsNeoforge {
 
     private PlayerResourceEventsNeoforge() {}
 
+    // Post reads the end-of-tick resource view, after every system has mutated state.
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -51,6 +39,14 @@ public final class PlayerResourceEventsNeoforge {
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
-        BlockBreakStaminaHandler.onBreakAttempt(event.getPlayer());
+        BlockBreakStaminaHandler.applyBreakCost(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        // Seed the tracking client with the target player's pool to extrapolate from.
+        if (event.getEntity() instanceof ServerPlayer viewer) {
+            ResourceSync.sendAnchorTo(viewer, event.getTarget());
+        }
     }
 }

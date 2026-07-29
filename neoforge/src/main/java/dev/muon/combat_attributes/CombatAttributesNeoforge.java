@@ -14,8 +14,8 @@ import net.neoforged.fml.loading.FMLEnvironment;
 public class CombatAttributesNeoforge {
 
     public CombatAttributesNeoforge(IEventBus eventBus) {
-        // Common init runs first — registers FzzyConfig configs at the top of init(),
-        // which the attribute constructors read from for default/min/max bounds.
+        // Common init runs first; it registers FzzyConfig configs at the top of init(),
+        // which the attribute constructors read for default/min/max bounds.
         CombatAttributes.init();
 
         ModAttributesNeoforge.REGISTRY.register(eventBus);

@@ -8,6 +8,7 @@
   "mixins": [
     "AttributeSupplierAccessor",
     "DefaultAttributesMixin",
+    "LivingEntityHealthRegenMixin",
     "compat.appleskin.FoodHelperMixin"
   ],
   "client": [

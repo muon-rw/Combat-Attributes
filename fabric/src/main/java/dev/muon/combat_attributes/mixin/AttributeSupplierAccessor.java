@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Exposes {@code AttributeSupplier#instances} so {@code ModAttributesFabric.augment} can
  * iterate the original entries when building a Combat Attributes-augmented copy. Replaces
- * the previous {@code combat_attributes.accesswidener} entry — keeps the Fabric-only
+ * the previous {@code combat_attributes.accesswidener} entry; keeps the Fabric-only
  * vanilla peek confined to the Fabric module instead of bleeding through {@code common}.
  *
  * <p>NeoForge has its own copy constructor on {@code AttributeSupplier.Builder}, so this

@@ -7,28 +7,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
 /**
- * Per-tick stamina + mana regeneration plus the per-tick stamina consumers
- * that fire while a state flag is held — sprint, swim, elytra. Runs
- * server-authoritatively; the resulting attachment update auto-syncs to the
- * owning client.
- *
- * <p>Regen attribute units are <em>per second</em>, distributed across 20
- * ticks so fractional rates (e.g. 0.5/sec) accumulate predictably. Mana and
- * stamina regen-or-skip decisions are folded into a single
- * {@link PlayerResources#writeIfChanged} so a typical tick produces at most
- * one sync packet for the regen path.
- *
- * <p>Per-tick drains are applied first via {@link PlayerResources#setStamina},
- * which fires {@code ChangeStaminaEvent} / {@code ChangeStaminaCallback}
- * exactly like an external consumer would — the {@code stamina_cost}
- * attribute multiplier is therefore picked up by the same listener that
- * handles all other drain paths.
- *
- * <p>While stamina sits at zero (the post-exhaustion lockout window), the
- * three continuous consumers force-cancel their respective state flags
- * ({@code setSprinting(false)}, {@code setSwimming(false)},
- * {@code stopFallFlying()}) so the player is not silently re-incurring drain
- * intents during the recovery period.
+ * Per-tick stamina + mana regeneration plus the flag-held stamina consumers (sprint, swim,
+ * elytra). Runs server-authoritatively; the attachment update auto-syncs to the owning client.
+ * Regen attributes are per-second, spread across 20 ticks.
  */
 public final class PlayerResourceTicker {
 
@@ -38,16 +19,14 @@ public final class PlayerResourceTicker {
 
     public static void onPlayerTick(ServerPlayer player) {
         applyContinuousConsumers(player);
-        applyRegenAndDecrementLockout(player);
+        PlayerResourceData data = PlayerResources.get(player);
+        PlayerResources.writeIfChanged(player, data, computeRegenTick(player, data));
+        // Periodic drift-insurance re-anchor, staggered by tickCount; also seeds clients that missed an earlier anchor.
+        if (player.tickCount % ResourceSync.KEEPALIVE_TICKS == 0) {
+            ResourceSync.broadcastAnchor(player);
+        }
     }
 
-    /**
-     * Drains for sprint / swim / elytra, blocking each via its loader-agnostic
-     * state setter once stamina is exhausted. Goes through
-     * {@link PlayerResources#trySpendStamina} so the gate-and-drain check is
-     * a single call, the {@code stamina_cost} listener applies, and the lockout
-     * trigger fires from the central path.
-     */
     private static void applyContinuousConsumers(ServerPlayer player) {
         boolean sprinting = player.isSprinting();
         boolean swimming  = player.isSwimming() && player.isUnderWater();
@@ -69,18 +48,11 @@ public final class PlayerResourceTicker {
     }
 
     /**
-     * Combined regen + delay-tick decrement, written through
-     * {@link PlayerResources#writeIfChanged} so an idle player at full pools
-     * with no lockout running produces zero packets.
-     *
-     * <p>Stamina regen runs only when both the persisted delay timer
-     * ({@code staminaRegenDelayTicks}) is zero AND no live regen-pause condition
-     * holds (see {@link #shouldPauseStaminaRegen}). Mana regen is unconditional.
-     * Values over the current max are clamped down here so a buff-expire scenario
-     * (max dropped after the last write) stops drifting once the ticker notices.
+     * One pure tick of regen + delay decrement. Shared by the server ticker and the client
+     * {@link ClientResourceExtrapolator} so both advance an un-spent pool identically; excludes
+     * drains, which reach the client only through a fresh anchor.
      */
-    private static void applyRegenAndDecrementLockout(ServerPlayer player) {
-        PlayerResourceData data = PlayerResources.get(player);
+    public static PlayerResourceData computeRegenTick(Player player, PlayerResourceData data) {
         float maxStamina = PlayerResources.getMaxStamina(player);
         float maxMana    = PlayerResources.getMaxMana(player);
         int  delay       = data.staminaRegenDelayTicks();
@@ -97,16 +69,13 @@ public final class PlayerResourceTicker {
         float nextMana  = data.mana() > maxMana ? maxMana : data.mana();
         nextMana = Math.min(nextMana + manaRegen * SECONDS_PER_TICK, maxMana);
 
-        PlayerResources.writeIfChanged(player, data, new PlayerResourceData(nextStamina, nextMana, nextDelay));
+        return new PlayerResourceData(nextStamina, nextMana, nextDelay);
     }
 
-    /**
-     * Live-state regen-pause predicates evaluated each tick. Composes with the
-     * persisted {@code staminaRegenDelayTicks} timer (post-exhaustion lockout,
-     * universal post-drain delay) at the call site — this method only answers
-     * for the live-state sources (ranged draw, underwater).
-     */
     private static boolean shouldPauseStaminaRegen(Player player) {
+        if (Configs.GENERAL == null) {
+            return false; // config not loaded yet; match the server's "don't pause" so the shared step stays in lockstep
+        }
         return (Configs.GENERAL.rangedDrawPausesStaminaRegen.get()
                     && player.isUsingItem()
                     && player.getUseItem().getItem() instanceof ProjectileWeaponItem)
